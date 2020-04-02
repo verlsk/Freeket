@@ -1,0 +1,14 @@
+<!DOCTYPE html >
+<html>
+ <body>
+ <h1>New text processed </h1>
+ </br>
+ Texts processed so far:
+ <ul>
+ {% for item in texts %}
+ <li>{{ item }} </li>
+ {% endfor %}
+ </ul>
+ <a href={% url 'form' %}>Back to form </a>
+ </body>
+</html>

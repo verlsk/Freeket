@@ -7,3 +7,17 @@ def index(request):
     template = loader.get_template("freeketapp/index.html")
     return HttpResponse(template.render())
 # Create your views here.
+
+def form(request):
+    context = {}
+    return render (request, "freeketapp/form.html", context)
+
+texts = []
+
+def process_form(request):
+    context = {}
+    if request.method == 'POST':
+        input_text = request.POST['input_text']
+        texts.append (input_text)
+    context['texts'] = texts
+    return render(request, "freeketapp/process_form.html", context)

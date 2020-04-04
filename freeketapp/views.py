@@ -21,3 +21,7 @@ def process_form(request):
         texts.append (input_text)
     context['texts'] = texts
     return render(request, "freeketapp/process_form.html", context)
+
+def crear_evento(request):
+    template = loader.get_template("freeketapp/plantilla_eventos.html")
+    return HttpResponse(template.render())

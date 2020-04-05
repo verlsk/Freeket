@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    $("#fechaEvento").datepicker({minDate: '1'});
+    $("#fechaEvento").datepicker({minDate: '1', dateFormat: 'dd-mm-yy'});
 
     $('#horaEvento').timepicker({
     timeFormat: 'H:mm',

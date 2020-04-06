@@ -10,6 +10,7 @@ class Usuario(models.Model):
 
 class Evento(models.Model):
     titulo = models.CharField(max_length=50)
+    url_id = models.CharField(max_length=100, default='default')
     fecha = models.DateField()
     hora = models.CharField(max_length=5)
     numero_entradas = models.IntegerField()

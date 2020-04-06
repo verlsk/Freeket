@@ -3,8 +3,8 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('form', views.form, name = 'form'),
-    path('process_form', views.process_form, name="process_form"),
     path('crear-evento', views.crear_evento, name='crear_evento'),
-    path('evento-creado', views.evento_creado, name = 'evento_creado')
+    path('evento-creado', views.evento_creado, name = 'evento_creado'),
+    path('evento/<str:id>', views.pagina_evento, name = 'pagina_evento'),
+    path('compra-realizada', views.compra_realizada, name='compra_realizada')
 ]

@@ -11,5 +11,11 @@ $(document).ready(function () {
     dynamic: false,
     dropdown: true,
     scrollbar: true
-});
+    });
+
+    var nmax = $('#nMaxInput').val();
+    for (var i = 1; i <= nmax; i++){
+        $('#nComprarEntradas').append(new Option(i, i));
+    }
+
 });

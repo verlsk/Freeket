@@ -1,10 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "freeketapp/base.html" %}
+{% block title %}Asistencia confirmada{% endblock %}
+{% block contenido %}
+<h1>Entradas adquiridas! </h1>
 
-</body>
-</html>
+<h3>Puedes descargar tus entradas en:</h3>
+<a href="/misentradas">
+          Mis entradas
+        </a>
+{% endblock %}

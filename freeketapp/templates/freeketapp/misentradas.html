@@ -1,0 +1,17 @@
+{% extends "freeketapp/base.html" %}
+
+{% block contenido %}
+<div class="container">
+    <h1>Aquí tienes todas tus entradas</h1>
+
+    {% for i, t in elementos %}
+    <div class="form-group">
+        <label>{{ t }}: </label>
+        <a href="misentradas/{{ i }}">
+            <button type="button">Descargar</button>
+        </a>
+    </div>
+    {% endfor %}
+
+</div>
+{% endblock %}

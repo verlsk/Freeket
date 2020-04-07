@@ -8,6 +8,14 @@ from django.template import loader
 from freeketapp.models import *
 import locale
 import unicodedata
+from cryptography.fernet import Fernet
+from reportlab.pdfgen import canvas
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.barcode.qr import QrCodeWidget
+from reportlab.graphics import renderPDF
+
+import pyqrcode
+
 
 def index(request):
     template = loader.get_template("freeketapp/index.html")
@@ -23,31 +31,49 @@ def evento_creado(request):
     template = loader.get_template("freeketapp/evento_creado.html")
     context = {}
     if request.method == 'POST':
+        # creamos al organizador del evento (provisional)
+        org = Organizador.objects.filter(id=1)
+        if org.count() == 0:
+            org = Organizador(nickname='pruebas', id=1)
+            org.save()
+        else:
+            org = org[0]
         titulo = request.POST.get('tituloEvento', '')
         context['titulo'] = titulo
+        # formatear la fecha para que la bbdd la pueda almacenar
         fecha = request.POST.get('fechaEvento', '')
         fecha = fecha.split("-")
         fecha = fecha[2] + "-" + fecha[1] + "-" + fecha[0]
         hora = request.POST.get('horaEvento', '')
         nentradas = request.POST.get('nEntradas', '')
         nmaxentradas = request.POST.get('nMaxEntradas', '')
+        ciudad = request.POST.get('ciudad','')
+        cpostal = request.POST.get('cpostal','')
+        direccion = request.POST.get('direccion','')
         url_aux = titulo.replace(" ", "-")
         url_id = ""
+        # eliminar caracteres especiales de la url
         for character in url_aux:
             if character.isalnum() or character == "-":
                 url_id += character
         url_id = url_id.lower()
-        url_id = str(unicodedata.normalize('NFD', url_id)\
-           .encode('ascii', 'ignore')\
-           .decode("utf-8"))
+        # eliminar acentos de la url
+        url_id = str(unicodedata.normalize('NFD', url_id) \
+                     .encode('ascii', 'ignore') \
+                     .decode("utf-8"))
+        # consultar si ya existe un evento con esa url
         e_number = Evento.objects.filter(url_id=url_id).count()
+        # si existe, se añade una distinción a la nuva url
         if e_number >= 1:
             url_id = url_id + "_" + str(e_number)
-
-        u = Usuario.objects.all()[0]  # provisionalmente
-        e = Evento(titulo=titulo, url_id=url_id, fecha=fecha, hora=hora, numero_entradas=nentradas,
+        # generamos clave para desencriptar entradas de evento
+        key = Fernet.generate_key().decode()
+        # uuid para evento
+        id_evento = uuid.uuid4()
+        # usuario que organiza el evento
+        e = Evento(id=id_evento, titulo=titulo, url_id=url_id, fecha=fecha, hora=hora, numero_entradas=nentradas,
                    max_entradas_user=nmaxentradas,
-                   organizador=u)
+                   organizador=org, key=key, ciudad=ciudad, direccion=direccion, cpostal=cpostal)
         e.save()
 
         context['url_id'] = url_id
@@ -57,16 +83,16 @@ def evento_creado(request):
 
 
 def pagina_evento(request, id):
-    template = loader.get_template("freeketapp/pagina_evento.html")
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
     id = id.lower()
 
     id = str(unicodedata.normalize('NFD', id) \
-                 .encode('ascii', 'ignore') \
-                 .decode("utf-8"))
+             .encode('ascii', 'ignore') \
+             .decode("utf-8"))
 
     try:
-        evento = Evento.objects.filter(url_id=id)
+        evento = Evento.objects.get(url_id=id)
+        '''
         if evento.count() == 0:
             urlEvento = id.rsplit("_", 1)
             titEvento = ""
@@ -84,6 +110,7 @@ def pagina_evento(request, id):
                 evento = None
         else:
             evento = evento[0]
+        '''
 
         if evento is None:
             raise Http404("El evento no existe!")
@@ -91,13 +118,106 @@ def pagina_evento(request, id):
             context = {}
             titulo_aux = evento.titulo
             context['titulo'] = titulo_aux
+            # hay que actualizarlo cuando el usuario esté logeado, restanlo al max_entradas_user si ya ha comprado entradas antes
             context['nmax'] = evento.max_entradas_user
             eng_date_format = evento.fecha
             esp_date_format = eng_date_format.strftime("%d de %B de %Y")
             context['fecha'] = esp_date_format
             context['hora'] = evento.hora
+            context['url_id'] = id
+            context['ciudad'] = evento.ciudad
+            context['direccion'] = evento.direccion
+            context['cpostal'] = evento.cpostal
     except Evento.DoesNotExist:
         raise Http404("El evento no existe!")
     except ValueError:
         raise Http404("El evento no existe!")
-    return HttpResponse(template.render(context, request))
+    return render(request, "freeketapp/pagina_evento.html", context)
+
+
+def compra_realizada(request):
+    context = {}
+    if request.method == 'POST':
+        nentradas = int(request.POST.get('nComprarEntradas', '1'))
+        titulo = request.POST.get('nameEvento', '')
+        id_evento = request.POST.get('idEvento', '')
+        # provisional
+        u = Usuario.objects.get(id=1)
+        # provisional
+        e = Evento.objects.get(url_id=id_evento)
+        e.numero_entradas -= nentradas
+        # controlamos que el máximo de entradas por usuario no sobrepase el número total de entradas que quedan
+        if (e.max_entradas_user > e.numero_entradas):
+            e.max_entradas_user = e.numero_entradas
+        e.save()
+        # uuid para cada nueva entrada
+        for i in range(nentradas):
+            id_entrada = uuid.uuid4()
+            e = Entrada(usuario=u, evento=e, id=id_entrada)
+            e.save()
+
+        # big_code = pyqrcode.create(qr)
+        # big_code.svg('freeketapp/static/freeketapp/uca-url.svg', scale=8)
+    return render(request, "freeketapp/compra_realizada.html", context)
+
+def mostrar_entrada(request, id):
+    # Create the HttpResponse object with the appropriate PDF headers.
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="entrada.pdf"'
+
+    try:
+        id_entrada = uuid.UUID(id).hex
+
+        #falan comprobaciones de permisos de usuario
+        entrada_exist = Entrada.objects.filter(id=id_entrada)
+        if entrada_exist.count() == 0:
+            raise Http404("La entrada no existe!")
+        else:
+            entrada = entrada_exist[0]
+            #encriptando texto
+            key = entrada.evento.key.encode()
+            f_key = Fernet(key)
+            txt_qr = f_key.encrypt(str(id_entrada).encode()).decode()
+            # Create the HttpResponse object with the appropriate PDF headers.
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="entrada.pdf"'
+            p = canvas.Canvas(response)
+
+            qrw = QrCodeWidget(txt_qr)
+            b = qrw.getBounds()
+
+            w = b[2] - b[0]
+            h = b[3] - b[1]
+
+            d = Drawing(150, 150, transform=[150. / w, 0, 0, 150. / h, 0, 0])
+            d.add(qrw)
+
+            text = p.beginText(40, 750)
+            text.setFont("Times-Roman", 14)
+            text.textLine("Aqui tienes tu entrada para: ")
+            text.textLine()
+            text.setFont("Times-Roman", 28)
+            text.textLine(entrada.evento.titulo)
+
+            p.drawText(text)
+            renderPDF.draw(d, p, 400, 650)
+
+            p.showPage()
+            p.save()
+    except ValueError:
+        raise Http404("La entrada noo existe!")
+    return response
+
+def misentradas(request):
+    ids = []
+    titulos = []
+    context = {}
+    usuario = Usuario.objects.get(id=1)
+    entradas = Entrada.objects.filter(usuario=usuario)
+    for i in entradas:
+        ids.append(str(i.id))
+        titulos.append(i.evento.titulo)
+    context['ids'] = ids
+    context['titulos'] = titulos
+    context['elementos'] = zip(ids, titulos)
+    return render(request, "freeketapp/misentradas.html", context)

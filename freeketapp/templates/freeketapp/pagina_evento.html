@@ -7,19 +7,20 @@
     <h1>{{ titulo }}</h1>
     <h4>{{ fecha }}</h4>
     <h6>{{ hora }}</h6>
-
-    <form>
-    {% csrf_token %}
-
-    <input type="hidden" id="nMaxInput" name="nMaxInput" value="{{ nmax }}">
-    <div class="form-group">
-        <label for="nComprarEntradas">Número de entradas:</label>
-        <select class="form-control" id="nComprarEntradas" name="nComprarEntradas">
-        </select>
-    </div>
-    <button class="btn btn-primary float-right" id="btnCrearEvento" type="submit">Comprar entradas</button>
+    <p>{{ direccion }}</p>
+    <p>{{ cpostal }}, {{ ciudad }}</p>
+    <form action={% url 'compra_realizada' %} method="post">
+        {% csrf_token %}
+        <input type="hidden" name="nameEvento" value="{{ titulo }}">
+        <input type="hidden" name="idEvento" value="{{ url_id }}">
+        <input id="nMaxInput" name="nMaxInput" type="hidden" value="{{ nmax }}">
+        <div class="form-group">
+            <label for="nComprarEntradas">Número de entradas:</label>
+            <select class="form-control" id="nComprarEntradas" name="nComprarEntradas">
+            </select>
+        </div>
+        <button class="btn btn-primary float-right" id="btnComprar" type="submit">Comprar entradas</button>
     </form>
 </div>
 
-{% qr_from_text "Hello World!" size="m" image_format="png" error_correction="L" %}
 {% endblock %}

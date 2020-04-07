@@ -1,0 +1,45 @@
+html {
+    min-height: 100%;
+    position: relative;
+  }
+  body {
+      background-color: #E2F5FF;
+  }
+
+  .navbar .nav-item:hover .nav-link {
+      color: #224367;
+      background-color: #fcfcfc; /* add background-color to active links */
+  }
+
+  .navbar-dark .navbar-nav .nav-link {
+      color: #fafaf4;
+      font-family: 'Calibri';
+      font-weight: bold;
+  }
+  .navbar {
+      background-color: #224367;
+      padding-top: 50;
+      padding-bottom: 0;
+  }
+
+  .navbar-brand {
+      margin-right: 30px;
+      margin-left: 30px;
+  }
+
+  #busqueda{
+      border-radius:20px;
+    }
+
+    .navbar-collapse.collapsing,
+.navbar-collapse.show {
+    padding-top: 20px;
+}
+
+.navbar-collapse.collapsing,
+.navbar-collapse.show
+    .nav-item:hover .nav-link {
+    color: #fcfcfc;
+      background-color: transparent;
+
+}

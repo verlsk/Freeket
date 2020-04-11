@@ -1,0 +1,47 @@
+{% extends "freeketapp/base.html" %}
+{% block title %}Inicia sesión{% endblock %}
+
+{% block contenido %}
+
+<div class="container">
+    <form action={% url 'registro-realizado' %} method="post">
+{% csrf_token %}
+        <div class="form-group">
+            <label for="username">Nombre de usuario: *</label>
+            <input class="form-control" id="username" name="username"
+                   type="text">
+            <small class="form-text text-muted">Este será el identificador que utilices para acceder a la
+                página.</small>
+        </div>
+        <div class="form-group">
+            <label for="nombre">Nombre: </label>
+            <input class="form-control" id="nombre" name="nombre"
+                   type="text">
+        </div>
+        <div class="form-group">
+            <label for="apellido">Apellidos: </label>
+            <input class="form-control" id="apellido" name="apellido"
+                   type="text">
+        </div>
+        <div class="form-group">
+            <label for="email">Email address: *</label>
+            <input class="form-control" id="email" name="email"
+                   type="email">
+        </div>
+        <div class="form-group">
+            <label for="password">Contraseña: *</label>
+            <input class="form-control" id="password" name="password" type="password">
+        </div>
+        <div class="form-group">
+            <label for="repPassword">Repite la contraseña: *</label>
+            <input class="form-control" id="repPassword" name="repPassword" type="password">
+        </div>
+        <small class="form-text text-muted">* Información obligatoria.</small>
+        <small class="form-text text-muted"> Al registrarte declaras aceptar los términos y condiciones de uso, así como
+            la política de privacidad y la política de cookies.</small>
+
+        <button class="btn btn-primary float-right" type="submit">Registrar</button>
+    </form>
+</div>
+
+{% endblock %}

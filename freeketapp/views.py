@@ -6,6 +6,10 @@ from django.http import HttpResponse, Http404
 from django.template import loader
 
 from freeketapp.models import *
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
+from django import forms
+
 import locale
 import unicodedata
 from cryptography.fernet import Fernet
@@ -13,8 +17,6 @@ from reportlab.pdfgen import canvas
 from reportlab.graphics.shapes import Drawing
 from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.graphics import renderPDF
-
-import pyqrcode
 
 
 def index(request):
@@ -28,7 +30,6 @@ def crear_evento(request):
 
 
 def evento_creado(request):
-    template = loader.get_template("freeketapp/evento_creado.html")
     context = {}
     if request.method == 'POST':
         # creamos al organizador del evento (provisional)
@@ -66,6 +67,7 @@ def evento_creado(request):
         # si existe, se añade una distinción a la nuva url
         if e_number >= 1:
             url_id = url_id + "_" + str(e_number)
+        context['url_id'] = url_id
         # generamos clave para desencriptar entradas de evento
         key = Fernet.generate_key().decode()
         # uuid para evento
@@ -76,8 +78,6 @@ def evento_creado(request):
                    organizador=org, key=key, ciudad=ciudad, direccion=direccion, cpostal=cpostal)
         e.save()
 
-        context['url_id'] = url_id
-        context['titulo'] = titulo
 
     return render(request, "freeketapp/evento_creado.html", context)
 
@@ -153,8 +153,8 @@ def compra_realizada(request):
         # uuid para cada nueva entrada
         for i in range(nentradas):
             id_entrada = uuid.uuid4()
-            e = Entrada(usuario=u, evento=e, id=id_entrada)
-            e.save()
+            entrada = Entrada(usuario=u, evento=e, id=id_entrada)
+            entrada.save()
 
         # big_code = pyqrcode.create(qr)
         # big_code.svg('freeketapp/static/freeketapp/uca-url.svg', scale=8)
@@ -178,12 +178,11 @@ def mostrar_entrada(request, id):
             key = entrada.evento.key.encode()
             f_key = Fernet(key)
             txt_qr = f_key.encrypt(str(id_entrada).encode()).decode()
+            qrw = QrCodeWidget(txt_qr)
             # Create the HttpResponse object with the appropriate PDF headers.
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="entrada.pdf"'
             p = canvas.Canvas(response)
-
-            qrw = QrCodeWidget(txt_qr)
             b = qrw.getBounds()
 
             w = b[2] - b[0]
@@ -221,3 +220,48 @@ def misentradas(request):
     context['titulos'] = titulos
     context['elementos'] = zip(ids, titulos)
     return render(request, "freeketapp/misentradas.html", context)
+
+
+def registro(request):
+    context = {}
+    return render(request, "freeketapp/registro.html", context)
+
+def registro_realizado(request):
+    context = {}
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        name = request.POST.get('nombre')
+        apellido = request.POST.get('apellido')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        duplicate_users = User.objects.filter(username=username)
+        duplicated_email = User.objects.filter(email=email)
+        if duplicate_users.exists():
+            raise forms.ValidationError("Username is already registered!")
+        elif duplicated_email.exists():
+            raise forms.ValidationError("E-mail is already registered!")
+        else:
+            user = User.objects.create_user(username, email, password)
+            user.first_name = name
+            user.last_name = apellido
+            user.save()
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+    return render(request, "freeketapp/registro_realizado.html", context)
+
+def my_login (request):
+    context = {}
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return render(request, "freeketapp/index.html", context)
+        else:
+            context['texto'] = "Combinación usuario/contraseña incorrecta"
+            return render(request, "freeketapp/login.html", context)
+    else:
+        return render(request, "freeketapp/login.html", context)

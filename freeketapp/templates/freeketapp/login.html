@@ -6,6 +6,7 @@
 <div class="container">
     <form action={% url 'login' %} method="post">
 {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.GET.next }}">
         <div class="form-group">
             <label for="username">Nombre de usuario: </label>
             <input class="form-control" id="username" name="username"

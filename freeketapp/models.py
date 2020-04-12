@@ -1,6 +1,7 @@
 from django.db import models
 import uuid
 from django.conf import settings
+from datetime import date
 
 class Organizador(models.Model):
     nickname = models.CharField(max_length=50)
@@ -25,6 +26,11 @@ class Entrada(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
     id = models.UUIDField(null=False, primary_key=True, default=uuid.uuid4)
+    date_adquisicion = models.DateField(default=date.today())
     objects = models.Manager()
 
+class ConfirmationCode(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    objects = models.Manager()
 # Create your models here.

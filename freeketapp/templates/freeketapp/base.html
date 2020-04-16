@@ -52,7 +52,8 @@
     <div class="collapse navbar-collapse " id="navbarColor02">
 
 
-        <ul class="navbar-nav d-lg-flex align-items-center nav-fill ml-auto mr-1">
+        <ul class="navbar-nav d-lg-flex align-items-center nav-fill ml-auto mr-1 my-1">
+            {% if islogged == 'y' %}
             <li class="nav-item dropdown">
                 <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown"
                    href="#" id="dropacciones">
@@ -68,6 +69,18 @@
                 </div>
             </li>
 
+            {% else %}
+            <li class="nav-item">
+                <a href="/login/">
+                    <button class="btn btn-outline-success my-2 mx-2 my-sm-0" type="button">Inicia sesión</button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/registro/">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="button">Regístrate</button>
+                </a>
+            </li>
+            {% endif %}
         </ul>
 
 

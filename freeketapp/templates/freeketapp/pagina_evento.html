@@ -9,7 +9,13 @@
     <h6>{{ hora }}</h6>
     <p>{{ direccion }}</p>
     <p>{{ cpostal }}, {{ ciudad }}</p>
+
+    {% if islogged == 'y' %}
     <form action={% url 'compra_realizada' %} method="post">
+    {% else %}
+    <form action="/login/?next=/evento/{{ url_id }}" %} method="post">
+    {% endif %}
+
         {% csrf_token %}
         <input type="hidden" name="nameEvento" value="{{ titulo }}">
         <input type="hidden" name="idEvento" value="{{ url_id }}">

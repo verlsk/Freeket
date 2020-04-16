@@ -31,11 +31,6 @@ html {
       border-radius:20px;
     }
 
-    .navbar-collapse.collapsing,
-.navbar-collapse.show {
-    padding-top: 20px;
-}
-
 .navbar-collapse.collapsing,
 .navbar-collapse.show
     .nav-item:hover .nav-link {

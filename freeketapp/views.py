@@ -1,7 +1,8 @@
 from datetime import datetime
 
+from io import BytesIO
 from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.shortcuts import render, redirect
 
 from django.http import HttpResponse, Http404
@@ -23,14 +24,20 @@ from reportlab.graphics import renderPDF
 
 
 def index(request):
-    template = loader.get_template("freeketapp/index.html")
-    return HttpResponse(template.render())
+    context = {}
+    if request.user.is_authenticated:
+        context['islogged'] = 'y'
+        print (request.user)
+    else:
+        context['islogged'] = 'n'
+    return render(request, "freeketapp/base.html", context)
 
 
 @login_required(login_url='/login')
 def crear_evento(request):
     context = {}
     return render(request, "freeketapp/plantilla_eventos.html", context)
+
 
 @login_required(login_url='/login')
 def evento_creado(request):
@@ -95,25 +102,6 @@ def pagina_evento(request, id):
 
     try:
         evento = Evento.objects.get(url_id=id)
-        '''
-        if evento.count() == 0:
-            urlEvento = id.rsplit("_", 1)
-            titEvento = ""
-            idEvento = -1
-            # la url viene en formato freeket.com/evento/esto-es-un-evento_id
-            # con estas lineas procesamos el evento
-            if len(urlEvento) > 1:
-                idEvento = int(urlEvento[1])
-                eventos = Evento.objects.filter(url_id=urlEvento[0])
-                if eventos.count() > 1 and 0 <= idEvento < eventos.count():
-                    evento = eventos[idEvento]
-                else:
-                    evento = None
-            else:
-                evento = None
-        else:
-            evento = evento[0]
-        '''
 
         if evento is None:
             raise Http404("El evento no existe!")
@@ -121,7 +109,8 @@ def pagina_evento(request, id):
             context = {}
             titulo_aux = evento.titulo
             context['titulo'] = titulo_aux
-            # hay que actualizarlo cuando el usuario esté logeado, restanlo al max_entradas_user si ya ha comprado entradas antes
+            # hay que actualizarlo cuando el usuario esté logeado, restanlo al max_entradas_user si ya ha comprado
+            # entradas antes
             context['nmax'] = evento.max_entradas_user
             eng_date_format = evento.fecha
             esp_date_format = eng_date_format.strftime("%d de %B de %Y")
@@ -131,6 +120,10 @@ def pagina_evento(request, id):
             context['ciudad'] = evento.ciudad
             context['direccion'] = evento.direccion
             context['cpostal'] = evento.cpostal
+            if request.user.is_authenticated:
+                context['islogged'] = 'y'
+            else:
+                context['islogged'] = 'n'
     except Evento.DoesNotExist:
         raise Http404("El evento no existe!")
     except ValueError:
@@ -138,13 +131,13 @@ def pagina_evento(request, id):
     return render(request, "freeketapp/pagina_evento.html", context)
 
 
-@login_required(login_url='/login')
+@login_required(login_url='/login/')
 def compra_realizada(request):
     context = {}
     if request.method == 'POST':
 
         id_confirmacion = ConfirmationCode.objects.filter(usuario_id=request.user.id)
-        print (id_confirmacion.count())
+        print(id_confirmacion.count())
         nentradas = int(request.POST.get('nComprarEntradas', '1'))
         titulo = request.POST.get('nameEvento', '')
         id_evento = request.POST.get('idEvento', '')
@@ -154,9 +147,9 @@ def compra_realizada(request):
         e = Evento.objects.get(url_id=id_evento)
         if id_confirmacion.count() > 0:
             context['texto'] = "Necesitas confirmar el email antes de adquirir una entrada"
-            url = '/evento/'+id_evento
+            url = '/evento/' + id_evento
             # pagina de confirmacion de email
-            #return redirect(url)
+            # return redirect(url)
         e.numero_entradas -= nentradas
         # controlamos que el máximo de entradas por usuario no sobrepase el número total de entradas que quedan
         if (e.max_entradas_user > e.numero_entradas):
@@ -167,11 +160,52 @@ def compra_realizada(request):
             id_entrada = uuid.uuid4()
             entrada = Entrada(usuario=request.user, evento=e, id=id_entrada)
             entrada.save()
+            enviar_entrada(entrada)
 
         # big_code = pyqrcode.create(qr)
         # big_code.svg('freeketapp/static/freeketapp/uca-url.svg', scale=8)
     return render(request, "freeketapp/compra_realizada.html", context)
 
+def get_entrada(entrada, p):
+    # encriptando texto
+    key = entrada.evento.key.encode()
+    f_key = Fernet(key)
+    txt_qr = f_key.encrypt(str(entrada.id).encode()).decode()
+    qrw = QrCodeWidget(txt_qr)
+    # Create the HttpResponse object with the appropriate PDF headers.
+
+    b = qrw.getBounds()
+
+    w = b[2] - b[0]
+    h = b[3] - b[1]
+
+    d = Drawing(150, 150, transform=[150. / w, 0, 0, 150. / h, 0, 0])
+    d.add(qrw)
+
+    text = p.beginText(40, 750)
+    text.setFont("Times-Roman", 14)
+    text.textLine("Aqui tienes tu entrada para: ")
+    text.textLine()
+    text.setFont("Times-Roman", 28)
+    text.textLine(entrada.evento.titulo)
+
+    p.drawText(text)
+
+    return p, d
+
+def enviar_entrada(entrada):
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer)
+    p, d = get_entrada(entrada, p)
+    renderPDF.draw(d, p, 400, 650)
+    p.showPage()
+    p.save()
+    pdf = buffer.getvalue()
+    buffer.close()
+    email = EmailMessage(
+        'Aquí tienes tu entrada!', 'Que te lo pases bien.', 'freeketmail@gmail.com', [entrada.usuario.email])
+    email.attach('entrada.pdf', pdf, 'application/pdf')
+    email.send()
 
 @login_required(login_url='/login')
 def mostrar_entrada(request, id):
@@ -187,32 +221,12 @@ def mostrar_entrada(request, id):
         if entrada_exist.count() == 0:
             raise Http404("La entrada no existe!")
         else:
-            entrada = entrada_exist[0]
-            # encriptando texto
-            key = entrada.evento.key.encode()
-            f_key = Fernet(key)
-            txt_qr = f_key.encrypt(str(id_entrada).encode()).decode()
-            qrw = QrCodeWidget(txt_qr)
-            # Create the HttpResponse object with the appropriate PDF headers.
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="entrada.pdf"'
+            entrada = entrada_exist[0]
             p = canvas.Canvas(response)
-            b = qrw.getBounds()
+            p, d = get_entrada(entrada, p)
 
-            w = b[2] - b[0]
-            h = b[3] - b[1]
-
-            d = Drawing(150, 150, transform=[150. / w, 0, 0, 150. / h, 0, 0])
-            d.add(qrw)
-
-            text = p.beginText(40, 750)
-            text.setFont("Times-Roman", 14)
-            text.textLine("Aqui tienes tu entrada para: ")
-            text.textLine()
-            text.setFont("Times-Roman", 28)
-            text.textLine(entrada.evento.titulo)
-
-            p.drawText(text)
             renderPDF.draw(d, p, 400, 650)
 
             p.showPage()
@@ -240,14 +254,17 @@ def misentradas(request):
 
 def registro(request):
     context = {}
-    logout(request)
+    if request.user.is_authenticated:
+        logout(request)
     return render(request, "freeketapp/registro.html", context)
 
 
 def send_confirmation_email(user):
     confirmation_code = ConfirmationCode.objects.get(usuario=user)
-    title = "Freeket: confirmación de email"
-    content = "127.0.0.1:8000/confirmation/" + str(confirmation_code.id) + "/" + user.username
+    title = "Freeket: Confirmación de email"
+    content = "Bienvenido a Freeket, " + user.username + "!\n\n"
+    content += "Para confimar tu email y poder adquirir entradas, accede a la siguiente página: "
+    content += "127.0.0.1:8000/confirmation/" + str(confirmation_code.id) + "/" + user.username
     send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
 
 
@@ -285,7 +302,8 @@ def registro_realizado(request):
 
 def my_login(request):
     context = {}
-    logout(request)
+    if request.user.is_authenticated:
+        logout(request)
     try:
         if request.method == 'POST':
             username = request.POST.get('username')
@@ -295,7 +313,8 @@ def my_login(request):
                 login(request, user)
                 return redirect(request.POST.get('next', 'index'))
             else:
-                context['texto'] = "Combinación usuario/contraseña incorrecta"
+                if request.POST.get('next') is not None:
+                    context['texto'] = "Combinación usuario/contraseña incorrecta"
                 return render(request, "freeketapp/login.html", context)
         else:
             return render(request, "freeketapp/login.html", context)
@@ -309,9 +328,8 @@ def confirmation(request, id, user):
         user_object = User.objects.get(username=user)
         id_confirmacion = ConfirmationCode.objects.get(usuario=user_object)
 
-        if (str(id_confirmacion.id) == id):
+        if str(id_confirmacion.id) == id:
             context['texto'] = "Email confirmado correctamente!"
-            user_object.save()
             # no lo necesitamos mas
             id_confirmacion.delete()
         else:
@@ -337,3 +355,31 @@ def reset_password(request):
             context['texto'] = "La contraseña actual proporcionada es incorrecta"
 
     return render(request, "freeketapp/reset_password.html", context)
+
+
+def send_forgot_password_email(user, password):
+    title = "Freeket: Reestablecimiento de contraseña"
+    content = "Tus nuevos credenciales son: \nUsuario: " + user.username + "\nContraseña: " + password
+    content += "\nInicia sesión y accede a \"Mi perfil\" para modificarla."
+    send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
+
+
+def forgot_password_form(request):
+    context = {}
+    if request.user.is_authenticated:
+        logout(request)
+    if request.method == 'POST':
+        email = request.POST.get('email').replace(" ", "")
+        user = User.objects.filter(email=email)
+        if user.count() > 0:
+            user = user[0]
+            # generando nueva contrasena a partir de un uuid
+            password = str(uuid.uuid4()).split("-")[0]
+            user.set_password(password)
+            user.save()
+            send_forgot_password_email(user, password)
+            context[
+                'texto'] = 'Te hemos mandado un email con tu nueva contraseña. Accede a tu cuenta y modifícala en el apartado \"Mi perfil\"'
+        else:
+            context['texto'] = 'Tu email no está asociado a ninguna cuenta existente'
+    return render(request, "freeketapp/forgot_password_form.html", context)

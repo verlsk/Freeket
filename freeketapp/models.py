@@ -12,7 +12,8 @@ class Evento(models.Model):
     url_id = models.CharField(max_length=100, default='default')
     fecha = models.DateField()
     hora = models.CharField(max_length=5)
-    numero_entradas = models.IntegerField()
+    numero_entradas_inicial = models.IntegerField(default=1)
+    numero_entradas_actual = models.IntegerField(default=1)
     max_entradas_user = models.IntegerField()
     ciudad = models.CharField(max_length=50, default='')
     direccion = models.CharField(max_length=100, default='')
@@ -26,7 +27,7 @@ class Entrada(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
     id = models.UUIDField(null=False, primary_key=True, default=uuid.uuid4)
-    date_adquisicion = models.DateField(default=date.today())
+    fecha_adquisicion = models.DateField(default=date.today())
     objects = models.Manager()
 
 class ConfirmationCode(models.Model):

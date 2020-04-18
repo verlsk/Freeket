@@ -1,0 +1,18 @@
+{% extends "freeketapp/mi_perfil.html" %}
+
+
+{% block pagina %}
+
+{% if send == 'y' %}
+<h1>Aún no has confirmado tu email!</h1>
+<form action={% url 'confirmar_email' %} method="post">
+{% csrf_token %}
+
+<button class="btn btn-primary float-right" type="submit">Enviar email de confirmación</button>
+</form>
+{% else %}
+
+<h1>{{ texto }}</h1>
+
+{% endif %}
+{% endblock %}

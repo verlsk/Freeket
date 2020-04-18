@@ -14,5 +14,7 @@ urlpatterns = [
     path('evento/<str:id>/', views.pagina_evento, name = 'pagina_evento'),
     path('compra-realizada/', views.compra_realizada, name='compra_realizada'),
     path('mis-entradas/<str:id>/', views.mostrar_entrada, name='mostrar_entrada'),
-    path('mis-entradas/', views.misentradas, name='misentradas')
+    path('mis-entradas/', views.misentradas, name='misentradas'),
+    path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
+    path('mi-perfil/confirmar-email', views.confirmar_email, name='confirmar_email'),
 ]

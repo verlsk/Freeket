@@ -57,14 +57,14 @@
             <li class="nav-item dropdown">
                 <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown"
                    href="#" id="dropacciones">
-                    Acciones
+                    Hola, {{ name }}
                 </a>
                 <div aria-labelledby="navbarDropdownMenuLink" class="dropdown-menu dropdown-menu-right">
-                    <a class="dropdown-item" href="#">Mi perfil</a>
+                    <a class="dropdown-item" href={% url 'mi_perfil' %}>Mi perfil</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="mis-entradas">Mis entradas</a>
+                    <a class="dropdown-item" href={% url 'misentradas' %}>Mis entradas</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="crear-evento">Crear evento</a>
+                    <a class="dropdown-item" href={% url 'crear_evento' %}>Crear evento</a>
                     <a class="dropdown-item" href="#">Gestionar eventos</a>
                 </div>
             </li>
@@ -87,11 +87,11 @@
     </div>
 </nav>
 {% endblock %}
-<div class="container">
-    {% block contenido %}
-    {% endblock %}
 
-</div>
+{% block contenido %}
+{% endblock %}
+
+
 
 
 <script crossorigin="anonymous"

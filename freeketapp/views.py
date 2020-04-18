@@ -27,7 +27,7 @@ def index(request):
     context = {}
     if request.user.is_authenticated:
         context['islogged'] = 'y'
-        print (request.user)
+        context['name'] = request.user.username
     else:
         context['islogged'] = 'n'
     return render(request, "freeketapp/base.html", context)
@@ -36,12 +36,16 @@ def index(request):
 @login_required(login_url='/login')
 def crear_evento(request):
     context = {}
+    context['islogged'] = 'y'
+    context['name'] = request.user.username
     return render(request, "freeketapp/plantilla_eventos.html", context)
 
 
 @login_required(login_url='/login')
 def evento_creado(request):
     context = {}
+    context['islogged'] = 'y'
+    context['name'] = request.user.username
     if request.method == 'POST':
         # creamos al organizador del evento (provisional)
         org = Organizador.objects.filter(id=request.user.id)
@@ -134,16 +138,16 @@ def pagina_evento(request, id):
 @login_required(login_url='/login/')
 def compra_realizada(request):
     context = {}
+    context['islogged'] = 'y'
+    context['name'] = request.user.username
+
     if request.method == 'POST':
 
         id_confirmacion = ConfirmationCode.objects.filter(usuario_id=request.user.id)
-        print(id_confirmacion.count())
         nentradas = int(request.POST.get('nComprarEntradas', '1'))
         titulo = request.POST.get('nameEvento', '')
         id_evento = request.POST.get('idEvento', '')
-        # provisional
-        # u = Usuario.objects.get(id=1)
-        # provisional
+
         e = Evento.objects.get(url_id=id_evento)
         if id_confirmacion.count() > 0:
             context['texto'] = "Necesitas confirmar el email antes de adquirir una entrada"
@@ -162,10 +166,10 @@ def compra_realizada(request):
             entrada.save()
             enviar_entrada(entrada)
 
-        # big_code = pyqrcode.create(qr)
-        # big_code.svg('freeketapp/static/freeketapp/uca-url.svg', scale=8)
     return render(request, "freeketapp/compra_realizada.html", context)
 
+
+# Generacion de PDF con entrada
 def get_entrada(entrada, p):
     # encriptando texto
     key = entrada.evento.key.encode()
@@ -193,6 +197,8 @@ def get_entrada(entrada, p):
 
     return p, d
 
+
+# Envio de entrada por email
 def enviar_entrada(entrada):
     buffer = BytesIO()
     p = canvas.Canvas(buffer)
@@ -206,6 +212,7 @@ def enviar_entrada(entrada):
         'Aquí tienes tu entrada!', 'Que te lo pases bien.', 'freeketmail@gmail.com', [entrada.usuario.email])
     email.attach('entrada.pdf', pdf, 'application/pdf')
     email.send()
+
 
 @login_required(login_url='/login')
 def mostrar_entrada(request, id):
@@ -246,6 +253,9 @@ def misentradas(request):
     for i in entradas:
         ids.append(str(i.id))
         titulos.append(i.evento.titulo)
+
+    context['islogged'] = 'y'
+    context['name'] = request.user.username
     context['ids'] = ids
     context['titulos'] = titulos
     context['elementos'] = zip(ids, titulos)
@@ -324,6 +334,11 @@ def my_login(request):
 
 def confirmation(request, id, user):
     context = {}
+    if request.user.is_authenticated:
+        context['islogged'] = 'y'
+        context['name'] = request.user.username
+    else:
+        context['islogged'] = 'n'
     try:
         user_object = User.objects.get(username=user)
         id_confirmacion = ConfirmationCode.objects.get(usuario=user_object)
@@ -342,6 +357,8 @@ def confirmation(request, id, user):
 @login_required(login_url='/login')
 def reset_password(request):
     context = {}
+    context['islogged'] = 'y'
+    context['name'] = request.user.username
     if request.method == 'POST':
         password = request.POST.get('oldpassword')
         user = authenticate(request, username=request.user, password=password)
@@ -383,3 +400,57 @@ def forgot_password_form(request):
         else:
             context['texto'] = 'Tu email no está asociado a ninguna cuenta existente'
     return render(request, "freeketapp/forgot_password_form.html", context)
+
+
+@login_required(login_url='/login')
+def mi_perfil(request):
+    context = {'islogged': 'y', 'name': request.user.username}
+
+    id_confirmacion = ConfirmationCode.objects.filter(usuario_id=request.user.id)
+
+    if id_confirmacion.count() > 0:
+        context['send'] = 'y'
+
+    if request.method == 'POST':
+        # validar
+        name = request.POST.get('nombre')
+        apellido = request.POST.get('apellido')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=request.user, password=password)
+
+        if user is not None:
+            request.user.first_name = name
+            request.user.last_name = apellido
+            request.user.email = email
+            request.user.save()
+            context['texto'] = "Cambios realizados correctamente"
+        else:
+            context['textofallo'] = "Contraseña incorrecta"
+
+    context['nombre'] = request.user.first_name
+    context['apellido'] = request.user.last_name
+    context['email'] = request.user.email
+
+    return render(request, "freeketapp/mi_perfil.html", context)
+
+
+@login_required(login_url='/login')
+def confirmar_email(request):
+    context = {'islogged': 'y', 'name': request.user.username}
+
+    id_confirmacion = ConfirmationCode.objects.filter(usuario_id=request.user.id)
+
+    if request.method == 'POST':
+        if id_confirmacion.count() > 0:
+            send_confirmation_email(request.user)
+            context['texto'] = "Te hemos mandado un email de confirmación"
+            context['send'] = 'n'
+    else:
+        if id_confirmacion.count() > 0:
+            context['send'] = 'y'
+        else:
+            context['texto'] = "Email confirmado!"
+            context['send'] = 'n'
+    return render(request, "freeketapp/confirmar_email.html", context)

@@ -110,7 +110,7 @@ def crear_evento(request):
             context['url_id'] = url_id
 
             if titulo == '' or nentradas == '' or ciudad == '' or direccion == '' or cpostal == '' or not RepresentsInt(
-                    nentradas) or int(nmaxentradas) < 0 or int(nmaxentradas) > 9 or int(nentradas) < 0:
+                    nentradas) or int(nmaxentradas) < 0 or int(nmaxentradas) > 10 or int(nentradas) < 0:
                 errores.append("Campos obligatorios vacíos o erróneos")
             context['errores'] = errores
             if len(errores) == 0:
@@ -156,6 +156,8 @@ def pagina_evento(request, id_evento):
 
             e = evento
             entradas_evento_usuario = Entrada.objects.filter(usuario=request.user, evento=e).count()
+            if request.user.id == evento.organizador.id:
+                errores.append("Como organizador del evento, no puedes adquirir entradas")
             if id_confirmacion.count() > 0:
                 errores.append("Necesitas confirmar el email antes de adquirir una entrada")
             if nentradas > e.numero_entradas_actual and entradas_evento_usuario + nentradas <= e.max_entradas_user != 0:
@@ -193,6 +195,11 @@ def pagina_evento(request, id_evento):
             # entradas antes
             context['nmax'] = evento.max_entradas_user
             eng_date_format = evento.fecha
+            if eng_date_format < date.today():
+                context['mostrarcomprar'] = 'n'
+            else:
+                context['mostrarcomprar'] = 'y'
+
             esp_date_format = eng_date_format.strftime("%d de %B de %Y")
             context['fecha'] = esp_date_format
             context['hora'] = evento.hora
@@ -542,3 +549,20 @@ def cerrar_sesion(request):
     logout(request)
     redirect('index')
     return render(request, "freeketapp/base.html", context)
+
+
+@login_required(login_url='/login')
+def gestionar_eventos(request):
+    context = {'islogged': 'y', 'name': request.user.username}
+    org = Organizador.objects.filter(nickname=request.user.username)
+
+    if org.count() == 1:
+        org = org[0]
+        eventos = Evento.objects.filter(organizador=org)
+        context['eventos'] = eventos
+        context['mostrareventos'] = 'y'
+    else:
+        context['mostrareventos'] = 'n'
+        # no hay eventos que mostrar
+
+    return render(request, "freeketapp/gestionar_eventos.html", context)

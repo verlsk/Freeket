@@ -3,9 +3,12 @@ import uuid
 from django.conf import settings
 from datetime import date
 
+
 class Organizador(models.Model):
     nickname = models.CharField(max_length=50)
     objects = models.Manager
+
+
 class Evento(models.Model):
     id = models.UUIDField(null=False, primary_key=True, default=uuid.uuid4)
     titulo = models.CharField(max_length=50)
@@ -23,12 +26,14 @@ class Evento(models.Model):
 
     objects = models.Manager()
 
+
 class Entrada(models.Model):
     usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
     id = models.UUIDField(null=False, primary_key=True, default=uuid.uuid4)
     fecha_adquisicion = models.DateField(default=date.today())
     objects = models.Manager()
+
 
 class ConfirmationCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)

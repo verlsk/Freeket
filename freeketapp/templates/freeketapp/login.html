@@ -16,7 +16,7 @@
             <label for="password">Contraseña: </label>
             <input class="form-control" id="password" name="password" type="password">
         </div>
-        <small class="form-text text-muted"> He olvidado la contraseña.</small>
+        <small class="form-text text-muted"> <a href={% url 'forgot_password_form' %}>He olvidado la contraseña</a>.</small>
 
         {% if texto is not None %}
         <p>{{ texto }}</p>

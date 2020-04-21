@@ -10,34 +10,38 @@
         <p>{{ direccion }}</p>
         <p>{{ cpostal }}, {{ ciudad }}</p>
 
-        {% if islogged == 'y' %}
-        <form action="/evento/{{ url_id }}/" method="post">
+        {% if mostrarcomprar == 'y' %}
+            {% if islogged == 'y' %}
+            <form action="/evento/{{ url_id }}/" method="post">
+            {% else %}
+            <form action="/login/?next=/evento/{{ url_id }}" %} method="post">
+            {% endif %}
+
+                {% csrf_token %}
+                <input type="hidden" name="nameEvento" value="{{ titulo }}">
+                <input type="hidden" name="idEvento" value="{{ url_id }}">
+                <input id="nMaxInput" name="nMaxInput" type="hidden" value="{{ nmax }}">
+                <div class="form-group">
+                    <label for="nComprarEntradas">Número de entradas:</label>
+                    <select class="form-control" id="nComprarEntradas" name="nComprarEntradas">
+                    </select>
+                </div>
+                <button class="btn btn-primary float-right" id="btnComprar" type="submit">Comprar entradas</button>
+
+                {% if errores is not None %}
+
+                 {% for i in errores %}
+                <p>{{ i }}</p>
+                {% endfor %}
+                {% endif %}
+                {% if adquiridas == 'y' %}
+                <p>Entradas adquiridas correctamente! Te hemos mandado un email por cada entrada, y,
+                    además, puedes consultarla en el apartado "Mis entrada" de Freeket</p>
+                {% endif %}
+            </form>
         {% else %}
-        <form action="/login/?next=/evento/{{ url_id }}" %} method="post">
+                <p>Este evento ya se ha pasado. No puedes adquirir entradas</p>
         {% endif %}
-
-            {% csrf_token %}
-            <input type="hidden" name="nameEvento" value="{{ titulo }}">
-            <input type="hidden" name="idEvento" value="{{ url_id }}">
-            <input id="nMaxInput" name="nMaxInput" type="hidden" value="{{ nmax }}">
-            <div class="form-group">
-                <label for="nComprarEntradas">Número de entradas:</label>
-                <select class="form-control" id="nComprarEntradas" name="nComprarEntradas">
-                </select>
-            </div>
-            <button class="btn btn-primary float-right" id="btnComprar" type="submit">Comprar entradas</button>
-
-            {% if errores is not None %}
-
-             {% for i in errores %}
-            <p>{{ i }}</p>
-            {% endfor %}
-            {% endif %}
-            {% if adquiridas == 'y' %}
-            <p>Entradas adquiridas correctamente! Te hemos mandado un email por cada entrada, y,
-                además, puedes consultarla en el apartado "Mis entrada" de Freeket</p>
-            {% endif %}
-        </form>
     </div>
 </div>
 {% endblock %}

@@ -1,0 +1,22 @@
+{% extends "freeketapp/base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+
+{% block contenido %}
+
+<div class = "container">
+{% if mostrareventos == 'y' %}
+
+    {% for e in eventos %}
+    <div class="form-group">
+    <label>{{ e.titulo }}: </label>
+    <a href="{{ e.url_id }}">
+        <button type="button">Gestionar</button>
+    </a>
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <h1>No has organizado ningun evento!</h1>
+    {% endif %}
+</div>
+{% endblock %}

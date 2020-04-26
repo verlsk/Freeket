@@ -38,14 +38,15 @@
 
     <a class="navbar-brand" href="/">Freeket</a>
 
-    <form class="mx-2 d-inline w-50">
+    <form class="mx-2 d-inline w-50" action="/eventos/" method="get">
 
         <div class="input-group form-rounded">
-            <input class="form-control form-rounded" id="busqueda" placeholder="Busca tu evento" type="text">
+            <input class="form-control form-rounded" id="busqueda" name = "titulo" placeholder="Busca tu evento" type="text">
             <div class="input-group-append">
 
             </div>
         </div>
+
     </form>
 
 
@@ -91,9 +92,11 @@
 {% endblock %}
 
 {% block contenido %}
+
+<div id="replaceable-content">
+
+</div>
 {% endblock %}
-
-
 
 
 <script crossorigin="anonymous"

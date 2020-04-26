@@ -22,7 +22,8 @@ from reportlab.graphics import renderPDF
 from django.db.models import Count, Q
 import json
 import threading
-
+from django.template.loader import render_to_string
+from django.http import JsonResponse
 
 def index(request):
     context = {}
@@ -831,3 +832,26 @@ def gestionar_eventos_asistentes(request, id_evento):
     context['asistentes'] = zip(users, counts)
 
     return render(request, "freeketapp/gestionar_eventos_asistentes.html", context)
+
+
+def eventos(request):
+    context = {'islogged': 'y', 'name': request.user.username}
+    titulo = request.GET.get("titulo")
+
+    evs = Evento.objects.all()
+
+    if titulo is not None:
+        evs = Evento.objects.filter(titulo__icontains=titulo)
+    print(evs)
+    context['eventos'] = evs
+
+    if request.is_ajax():
+        html = render_to_string(
+            template_name="freeketapp/eventos_parcial.html",
+            context=context
+        )
+
+        data_dict = {"html_from_view": html}
+
+        return JsonResponse(data=data_dict, safe=False)
+    return render(request, "freeketapp/eventos.html", context)

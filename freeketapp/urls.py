@@ -22,4 +22,5 @@ urlpatterns = [
     path('gestionar-eventos/<str:id_evento>/cancelar-evento/', views.gestionar_eventos_cancelar, name='gestionar_eventos_cancelar'),
     path('gestionar-eventos/<str:id_evento>/asistentes/', views.gestionar_eventos_asistentes,
          name='gestionar_eventos_asistentes'),
+    path('eventos/', views.eventos, name='eventos'),
 ]

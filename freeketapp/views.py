@@ -1,4 +1,5 @@
 from datetime import datetime
+from datetime import timedelta
 from io import BytesIO
 import time
 from django.contrib.auth.decorators import login_required
@@ -18,6 +19,9 @@ from reportlab.pdfgen import canvas
 from reportlab.graphics.shapes import Drawing
 from reportlab.graphics.barcode.qr import QrCodeWidget
 from reportlab.graphics import renderPDF
+from django.db.models import Count, Q
+import json
+import threading
 
 
 def index(request):
@@ -180,9 +184,12 @@ def pagina_evento(request, id_evento):
                     id_entrada = uuid.uuid4()
                     entrada = Entrada(usuario=request.user, evento=e, id=id_entrada)
                     entrada.save()
-                    enviar_entrada(entrada)
+                    t = threading.Thread(target=enviar_entrada, args=(entrada,), kwargs={})
+                    t.setDaemon(True)
+                    t.start()
                 # actualizacion del numero de entradas
                 e.numero_entradas_actual -= nentradas
+                e.save()
                 context['adquiridas'] = 'y'
             context['errores'] = errores
 
@@ -191,9 +198,11 @@ def pagina_evento(request, id_evento):
         else:
             titulo_aux = evento.titulo
             context['titulo'] = titulo_aux
-            # hay que actualizarlo cuando el usuario esté logeado, restanlo al max_entradas_user si ya ha comprado
-            # entradas antes
-            context['nmax'] = evento.max_entradas_user
+
+            if evento.max_entradas_user != 0:
+                context['nmax'] = evento.max_entradas_user
+            else:
+                context['nmax'] = 15
             eng_date_format = evento.fecha
             if eng_date_format < date.today():
                 context['mostrarcomprar'] = 'n'
@@ -566,3 +575,259 @@ def gestionar_eventos(request):
         # no hay eventos que mostrar
 
     return render(request, "freeketapp/gestionar_eventos.html", context)
+
+
+@login_required(login_url='/login')
+def gestionar_eventos_evento(request, id_evento):
+    context = {'islogged': 'y', 'name': request.user.username}
+
+    try:
+        evento = Evento.objects.get(url_id=id_evento)
+        # comprobar propietario del evento
+        if evento.organizador.nickname != request.user.username:
+            raise Http404("El evento no existe")
+
+        numero_entradas_inicial = evento.numero_entradas_inicial
+        numero_entradas_actual = evento.numero_entradas_actual
+
+        entradas = Entrada.objects.filter(evento=evento).values('fecha_adquisicion').annotate(
+            total=Count('fecha_adquisicion')).order_by('fecha_adquisicion')
+        labels = []
+        data = []
+
+        delta = timedelta(days=1)
+        start_date = evento.fecha_creacion
+        end_date = date.today()
+
+        if entradas.count() > 0:
+            end_date = entradas[0]['fecha_adquisicion']
+
+        while start_date < end_date:
+            esp_date_format = start_date.strftime("%d-%m-%Y")
+            labels.append(esp_date_format)
+            data.append(0)
+            start_date += delta
+        if entradas.count() > 0:
+            start_date = entradas[0]['fecha_adquisicion']
+            if evento.fecha >= date.today():
+                end_date = date.today()
+            else:
+                end_date = evento.fecha
+            contador_entradas = 0
+            while start_date <= end_date:
+                data_to_append = 0
+                if start_date == entradas[contador_entradas]['fecha_adquisicion']:
+                    data_to_append = entradas[contador_entradas]['total']
+                    if contador_entradas + 1 < entradas.count():
+                        contador_entradas += 1
+
+                esp_date_format = start_date.strftime("%d-%m-%Y")
+                labels.append(esp_date_format)
+                data.append(data_to_append)
+                start_date += delta
+
+        context['n_entradas'] = str(numero_entradas_actual) + "/" + str(numero_entradas_inicial)
+        context['n_entradas_adquiridas'] = str(numero_entradas_inicial - numero_entradas_actual)
+        context['data'] = data
+        context['labels'] = json.dumps(labels)
+        context['id_evento'] = id_evento
+
+    except Evento.DoesNotExist:
+        raise Http404("El evento no existe")
+
+    return render(request, "freeketapp/gestionar_eventos_evento.html", context)
+
+
+def enviar_email_cambios(evento, text):
+    entradas = Entrada.objects.filter(evento=evento).values('usuario').annotate(c=Count('usuario'))
+
+    for i in entradas:
+        user = User.objects.get(id=i['usuario'])
+        title = "Cambios en tu evento"
+        content = "Hola, " + user.username + ":\n"
+        content += "Te escribimos para comunicarte que ha habido cambios en el evento \"" + evento.titulo + "\""
+        content += ", al que tenías previsto asistir."
+        if text != '':
+            content += "\nAquí tienes una nota del organizador:\n" + text
+        content += "\nPuedes consultar la nueva información en: 127.0.0.1:8000/evento/" + evento.url_id
+
+        send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
+
+
+@login_required(login_url='/login')
+def gestionar_eventos_modificar(request, id_evento):
+    context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento}
+    errores = []
+    cambios = False
+    mandar_email = False
+    try:
+        evento = Evento.objects.get(url_id=id_evento)
+        # comprobar propietario del evento
+        if evento.organizador.nickname != request.user.username:
+            raise Http404("El evento no existe")
+
+        if request.method == 'POST':
+            titulo = request.POST.get('tituloEvento', '')
+            if titulo != evento.titulo:
+                evento.titulo = titulo
+                cambios = True
+            # formatear la fecha para que la bbdd la pueda almacenar
+            fecha = request.POST.get('fechaEvento', '')
+            fecha = validate_date(fecha)
+            if not fecha:
+                errores.append("Formato de fecha incorrecto")
+
+            if fecha != evento.fecha:
+                evento.fecha = fecha
+                fecha = fecha.split("-")
+                fecha = fecha[2] + "-" + fecha[1] + "-" + fecha[0]
+                context['fecha'] = fecha
+                cambios = True
+                mandar_email = True
+
+            hora = request.POST.get('horaEvento', '')
+            if not isTimeFormat(hora):
+                errores.append("Formato de hora incorrecto")
+
+            if hora != evento.hora:
+                evento.hora = hora
+                cambios = True
+                mandar_email = True
+
+            nentradas = request.POST.get('nEntradas', '')
+            if nentradas != evento.numero_entradas_actual:
+                evento.numero_entradas_inicial = evento.numero_entradas_inicial - evento.numero_entradas_actual + int(
+                    nentradas)
+                evento.numero_entradas_actual = nentradas
+                cambios = True
+
+            nmaxentradas = request.POST.get('nMaxEntradas', '')
+            if nmaxentradas != evento.max_entradas_user:
+                evento.max_entradas_user = nmaxentradas
+                cambios = True
+            ciudad = request.POST.get('ciudad', '')
+            if ciudad != evento.ciudad:
+                evento.ciudad = ciudad
+                cambios = True
+                mandar_email = True
+            cpostal = request.POST.get('cpostal', '')
+            if cpostal != evento.cpostal:
+                evento.cpostal = cpostal
+                cambios = True
+                mandar_email = True
+            direccion = request.POST.get('direccion', '')
+            if direccion != evento.direccion:
+                evento.direccion = direccion
+                cambios = True
+                mandar_email = True
+
+            if titulo == '' or nentradas == '' or ciudad == '' or direccion == '' or cpostal == '' or not RepresentsInt(
+                    nentradas) or int(nmaxentradas) < 0 or int(nmaxentradas) > 10 or int(nentradas) < 0:
+                errores.append("Campos obligatorios vacíos o erróneos")
+            context['errores'] = errores
+            if len(errores) == 0 and cambios == True:
+                context['publicado'] = True
+                evento.save()
+                if mandar_email:
+                    nota_informativa = request.POST.get('notaInformativa', '')
+                    # mandar email
+                    t = threading.Thread(target=enviar_email_cambios, args=(evento, nota_informativa), kwargs={})
+                    t.setDaemon(True)
+                    t.start()
+        else:
+            context['fecha'] = evento.fecha.strftime("%d-%m-%Y")
+        context['titulo'] = evento.titulo
+        context['hora'] = evento.hora
+        context['nentradas'] = evento.numero_entradas_actual
+        context['ciudad'] = evento.ciudad
+        context['direccion'] = evento.direccion
+        context['cpostal'] = evento.cpostal
+        context['nmax'] = evento.max_entradas_user
+    except Evento.DoesNotExist:
+        raise Http404("El evento no existe")
+    except TypeError:
+        errores.append("Campos obligatorios vacíos o erróneos")
+        context['errores'] = errores
+    return render(request, "freeketapp/gestionar_eventos_modificar.html", context)
+
+
+def enviar_email_informativo(evento, text):
+    entradas = Entrada.objects.filter(evento=evento).values('usuario').annotate(c=Count('usuario'))
+
+    for i in entradas:
+        user = User.objects.get(id=i['usuario'])
+        title = "Notificación acerca de tu evento"
+        content = "Hola, " + user.username + ":\n"
+        content += "Tienes una nota informativa de parte del organizador del evento: \"" + evento.titulo + "\""
+        content += ", al que tenías previsto asistir:"
+
+        content += "\n\n    \"" + text + "\""
+        send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
+
+
+@login_required(login_url='/login')
+def gestionar_eventos_notificacion(request, id_evento):
+    context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento}
+    errores = []
+    context['enviado'] = False
+    try:
+        if request.method == 'POST':
+            mensaje = request.POST.get('notaInformativa', '')
+            if mensaje == '':
+                errores.append("El mensaje está vacío")
+                context['errores'] = errores
+
+            else:
+                evento = Evento.objects.get(url_id=id_evento)
+                context['enviado'] = True
+                t = threading.Thread(target=enviar_email_informativo, args=(evento, mensaje), kwargs={})
+                t.setDaemon(True)
+                t.start()
+    except TypeError:
+        raise Http404("No encontrado")
+
+    return render(request, "freeketapp/gestionar_eventos_notificacion.html", context)
+
+
+def enviar_email_cancelar(evento):
+    entradas = Entrada.objects.filter(evento=evento).values('usuario').annotate(c=Count('usuario'))
+
+    for i in entradas:
+        user = User.objects.get(id=i['usuario'])
+        title = "ATENCIÓN: Evento cancelado"
+        content = "Hola, " + user.username + ":\n"
+        content += "El organizador del evento: \"" + evento.titulo + "\""
+        content += ", al que tenías previsto asistir, lo ha cancelado. Sentimos lo ocurrido."
+
+        send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
+    evento.delete()
+
+
+@login_required(login_url='/login')
+def gestionar_eventos_cancelar(request, id_evento):
+    context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento}
+    evento = Evento.objects.get(url_id=id_evento)
+    if request.method == 'POST':
+        t = threading.Thread(target=enviar_email_cancelar, args=(evento,), kwargs={})
+        t.setDaemon(True)
+        t.start()
+
+        return redirect('gestionar_eventos')
+    return render(request, "freeketapp/gestionar_eventos_cancelar.html", context)
+
+
+@login_required(login_url='/login')
+def gestionar_eventos_asistentes(request, id_evento):
+    context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento}
+    users = []
+    counts = []
+    evento = Evento.objects.get(url_id=id_evento)
+    entradas = Entrada.objects.filter(evento=evento).values('usuario').annotate(c=Count('usuario'))
+    for i in entradas:
+        user = User.objects.get(id=i['usuario'])
+        users.append(user)
+        counts.append(i['c'])
+
+    context['asistentes'] = zip(users, counts)
+
+    return render(request, "freeketapp/gestionar_eventos_asistentes.html", context)

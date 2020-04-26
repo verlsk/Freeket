@@ -23,7 +23,7 @@ class Evento(models.Model):
     cpostal = models.CharField(max_length=20, default='')
     key = models.CharField(max_length=100, default='default')
     organizador = models.ForeignKey(Organizador, on_delete=models.CASCADE, default=1)
-
+    fecha_creacion = models.DateField(default=date.today())
     objects = models.Manager()
 
 

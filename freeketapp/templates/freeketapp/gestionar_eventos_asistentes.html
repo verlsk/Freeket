@@ -1,0 +1,13 @@
+{% extends "freeketapp/gestionar_eventos_evento.html" %}
+
+{% block pagina %}
+
+<div class="container">
+    {% for u, c in asistentes %}
+
+    <p>Usuario: {{ u.username }}; Nombre: {{ u.first_name }}; Apellido: {{ u.last_name }};Email: {{ u.email }}; Número de entradas: {{ c }}</p>
+
+    {% endfor %}
+</div>
+
+{% endblock %}

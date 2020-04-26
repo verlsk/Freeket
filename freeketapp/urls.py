@@ -16,4 +16,10 @@ urlpatterns = [
     path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
     path('mi-perfil/confirmar-email', views.confirmar_email, name='confirmar_email'),
     path('gestionar-eventos/', views.gestionar_eventos, name='gestionar_eventos'),
+    path('gestionar-eventos/<str:id_evento>/', views.gestionar_eventos_evento, name='gestionar_eventos_evento'),
+    path('gestionar-eventos/<str:id_evento>/modificar/', views.gestionar_eventos_modificar, name='gestionar_eventos_modificar'),
+    path('gestionar-eventos/<str:id_evento>/notificacion/', views.gestionar_eventos_notificacion, name='gestionar_eventos_notificacion'),
+    path('gestionar-eventos/<str:id_evento>/cancelar-evento/', views.gestionar_eventos_cancelar, name='gestionar_eventos_cancelar'),
+    path('gestionar-eventos/<str:id_evento>/asistentes/', views.gestionar_eventos_asistentes,
+         name='gestionar_eventos_asistentes'),
 ]

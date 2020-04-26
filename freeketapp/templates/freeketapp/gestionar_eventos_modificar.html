@@ -1,0 +1,81 @@
+{% extends "freeketapp/gestionar_eventos_evento.html" %}
+
+{% block pagina %}
+
+<div class="container">
+    <form action="/gestionar-eventos/{{ id_evento }}/modificar/" method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="tituloEvento">Elige el título de tu evento *</label>
+            <input class="form-control" id="tituloEvento" name="tituloEvento" placeholder="Título" type="text"
+                   value="{{ titulo }}">
+        </div>
+        <div class="form-group">
+            <label for="fechaEvento">Fecha del evento: *</label>
+            <input class="form-control" id="fechaEvento" name="fechaEvento"
+                   placeholder="Haz clic para seleccionar la fecha"
+                   type="text" value="{{ fecha }}">
+        </div>
+        <div class="form-group">
+            <label for="horaEvento">Selecciona la hora del evento: *</label>
+            <input class="form-control" id="horaEvento" name="horaEvento" placeholder="Haz clic para determinar la hora"
+                   type="text" value="{{ hora }}">
+        </div>
+        <div class="form-group">
+            <label for="nEntradas">Número total de entradas disponibles actualmente: *</label>
+            <input class="form-control" id="nEntradas" name="nEntradas" placeholder="" type="text"
+                   value="{{ nentradas }}">
+        </div>
+
+        <div class="form-group">
+            <label for="ciudad">Ciudad: *</label>
+            <input class="form-control" id="ciudad" name="ciudad" placeholder="" type="text" value="{{ ciudad }} ">
+        </div>
+        <div class="form-group">
+            <label for="direccion">Dirección: *</label>
+            <input class="form-control" id="direccion" name="direccion" placeholder="Ej. Calle Granada 5" type="text"
+                   value="{{ direccion }}">
+        </div>
+        <div class="form-group">
+            <label for="cpostal">Código postal: *</label>
+            <input class="form-control" id="cpostal" name="cpostal" placeholder="" type="text" value="{{ cpostal }}">
+        </div>
+
+        <div class="form-group">
+            <label for="nMaxEntradas">Número máximo de entradas que un usuario puede adquirir: *</label>
+            <select class="form-control" id="nMaxEntradas" name="nMaxEntradas">
+                <option value="0">Sin límite</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+            <script>
+            window.document.getElementById('nMaxEntradas').selectedIndex = {{ nmax }}
+
+            </script>
+        </div>
+
+        <div class="form-group">
+            <label for="notaInformativa">Puedes dejar una nota informativa que se enviará automáticamente a los asistentes al evento</label>
+            <textarea class="form-control" id="notaInformativa" name = "notaInformativa" rows="4"></textarea>
+        </div>
+        <small class="form-text text-muted" id="info">* Campos obligatorios.</small>
+        <button class="btn btn-primary float-right" id="btnCrearEvento" type="submit">Modificar evento</button>
+    </form>
+    {% for i in errores %}
+    <p>{{ i }}</p>
+    {% endfor %}
+    {% if publicado is not None %}
+    <p>Cambios realizados correctamente</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

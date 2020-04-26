@@ -1,0 +1,85 @@
+{% extends "freeketapp/base.html" %}
+
+{% block contenido %}
+<div class="row">
+    <div class="col-sm-12 col-md-2 h-100">
+
+        <ul>
+            <li>
+                <a href="/gestionar-eventos/{{ id_evento }}">
+                <button type="button">Estadísticas</button>
+                </a>
+            </li>
+            <li>
+                <a href="/gestionar-eventos/{{ id_evento }}/asistentes">
+                <button type="button">Lista de asistentes</button>
+                </a>
+            </li>
+            <li>
+                <a href="/gestionar-eventos/{{ id_evento }}/modificar">
+                <button type="button">Modificar información</button>
+                </a>
+            </li>
+            <li>
+                <a href="/gestionar-eventos/{{ id_evento }}/notificacion">
+                <button type="button">Enviar notificación a los asistentes</button>
+                </a>
+            </li>
+            <li>
+                <a href="/gestionar-eventos/{{ id_evento }}/cancelar-evento">
+                <button type="button">Cancelar evento</button>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col-md-10 col-sm-12">
+        {% block pagina %}
+
+        <div class="form-group">
+
+            <label>Quedan</label>
+            <p>{{ n_entradas }}</p>
+
+        </div>
+
+        <div class="form-group">
+
+            <label>Entradas adquiridas</label>
+            <p>{{ n_entradas_adquiridas }}</p>
+
+        </div>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+
+
+        <div class="box">
+            <canvas id="lineChart" height="450" width="800"></canvas>
+        </div>
+        <script language="JavaScript"><!--
+  function displayLineChart() {
+    var data = {
+        labels: {{ labels|safe }},
+        datasets: [
+            {
+                label: "Prime and Fibonacci",
+                fillColor: "rgba(220,220,220,0.2)",
+                strokeColor: "rgba(220,220,220,1)",
+                pointColor: "rgba(220,220,220,1)",
+                pointStrokeColor: "#fff",
+                pointHighlightFill: "#fff",
+                pointHighlightStroke: "rgba(220,220,220,1)",
+                data: {{ data }}
+            }
+        ]
+    };
+    var ctx = document.getElementById("lineChart").getContext("2d");
+    var options = { };
+    var lineChart = new Chart(ctx).Line(data, options);
+  }
+  window.onload = displayLineChart();
+  --></script>
+        {% endblock %}
+    </div>
+</div>
+{% endblock %}

@@ -6,6 +6,8 @@ from datetime import date
 
 class Organizador(models.Model):
     nickname = models.CharField(max_length=50)
+    exclusive_org = models.BooleanField(default=True)
+    direccion = models.CharField(max_length=100, default='')
     objects = models.Manager
 
 
@@ -24,6 +26,7 @@ class Evento(models.Model):
     key = models.CharField(max_length=100, default='default')
     organizador = models.ForeignKey(Organizador, on_delete=models.CASCADE, default=1)
     fecha_creacion = models.DateField(default=date.today())
+    visitas = models.IntegerField(default=0)
     objects = models.Manager()
 
 

@@ -1,0 +1,12 @@
+{% extends "freeketapp/mi_perfil.html" %}
+
+
+{% block pagina %}
+
+<h1>Para registrarte como asistente, pulsa el botón de abajo</h1>
+    <form action={% url 'registro_asistente' %} method="post">
+{% csrf_token %}
+<input type="hidden" name="next" value="{{ request.GET.next }}">
+            <button class="btn btn-primary float-right" type="submit">Registrar</button>
+    </form>
+{% endblock %}

@@ -26,8 +26,11 @@
                     <select class="form-control" id="nComprarEntradas" name="nComprarEntradas">
                     </select>
                 </div>
-                <button class="btn btn-primary float-right" id="btnComprar" type="submit">Comprar entradas</button>
-
+                {% if profile != 'org' %}
+                <button class="btn btn-primary float-right" id="btnComprar" type="submit">Adquirir entradas</button>
+                {% else %}
+                <p>Para adquirir entradas, cambia al perfil de asistente</p>
+                {% endif %}
                 {% if errores is not None %}
 
                  {% for i in errores %}

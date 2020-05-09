@@ -1,0 +1,19 @@
+{% extends "freeketapp/mi_perfil.html" %}
+
+
+{% block pagina %}
+
+
+    <form action={% url 'registro_organizador' %} method="post">
+{% csrf_token %}
+        <div class="form-group">
+                        <label>Dirección: *</label>
+                        <input class="form-control" name="orgDireccion"
+                               type="text" value="{{ orgDireccion }}">
+        </div>
+            <button class="btn btn-primary float-right" type="submit">Registrar</button>
+    </form>
+    {% if errores %}
+    <p>{{ errores }}</p>
+    {% endif %}
+{% endblock %}

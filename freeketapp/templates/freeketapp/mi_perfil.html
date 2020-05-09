@@ -22,6 +22,22 @@
                 </a>
             </li>
             {% endif %}
+
+            {% if profile == 'org' and not assist %}
+            <li>
+                <a href={% url 'registro_asistente' %}>
+                <button type="button">Regístrate como asistente</button>
+                </a>
+            </li>
+            {% elif profile == 'assist' and not org %}
+            <li>
+                <a href={% url 'registro_organizador' %}>
+                <button type="button">Regístrate como organizador</button>
+                </a>
+            </li>
+            {% endif %}
+
+
         </ul>
     </div>
 

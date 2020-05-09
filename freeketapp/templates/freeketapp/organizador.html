@@ -1,0 +1,13 @@
+{% extends "freeketapp/base.html" %}
+{% block title %}Organizador{% endblock %}
+
+{% block contenido %}
+<div class="container">
+    <a href={% url 'crear_evento' %}>
+    <button class="btn btn-primary float-right" type="button">Crear evento</button>
+    </a>
+    <a href={% url 'gestionar_eventos' %}>
+    <button class="btn btn-primary float-right" type="button">Gestionar eventos</button>
+    </a>
+</div>
+{% endblock %}

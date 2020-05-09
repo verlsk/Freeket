@@ -53,4 +53,26 @@ $(document).ready(function () {
         // setTimeout returns the ID of the function to be executed
         scheduled_function = setTimeout(ajax_call, delay_by_in_ms, endpoint, request_parameters)
     });
+
+    $("#btnOrganizador").click(function(){
+        $("#infoOrg").removeClass("d-none")
+        $("#btnOrganizador").addClass("active")
+        $("#btnAmbos").removeClass("active")
+        $("#btnAsistente").removeClass("active")
+        $("#userType").val('org')
+    });
+    $("#btnAmbos").click(function(){
+        $("#infoOrg").removeClass("d-none")
+        $("#btnOrganizador").removeClass("active")
+        $("#btnAmbos").addClass("active")
+        $("#btnAsistente").removeClass("active")
+        $("#userType").val('both')
+    });
+    $("#btnAsistente").click(function(){
+        $("#infoOrg").addClass("d-none")
+        $("#btnOrganizador").removeClass("active")
+        $("#btnAmbos").removeClass("active")
+        $("#btnAsistente").addClass("active")
+        $("#userType").val('assist')
+    });
 });

@@ -15,6 +15,8 @@ urlpatterns = [
     path('mis-entradas/', views.misentradas, name='misentradas'),
     path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
     path('mi-perfil/confirmar-email', views.confirmar_email, name='confirmar_email'),
+    path('mi-perfil/registro-asistente/', views.registro_asistente, name='registro_asistente'),
+    path('mi-perfil/registro-organizador/', views.registro_organizador, name='registro_organizador'),
     path('gestionar-eventos/', views.gestionar_eventos, name='gestionar_eventos'),
     path('gestionar-eventos/<str:id_evento>/', views.gestionar_eventos_evento, name='gestionar_eventos_evento'),
     path('gestionar-eventos/<str:id_evento>/modificar/', views.gestionar_eventos_modificar, name='gestionar_eventos_modificar'),
@@ -23,4 +25,7 @@ urlpatterns = [
     path('gestionar-eventos/<str:id_evento>/asistentes/', views.gestionar_eventos_asistentes,
          name='gestionar_eventos_asistentes'),
     path('eventos/', views.eventos, name='eventos'),
+    path('perfil-organizador/', views.perfil_organizador, name='perfil_organizador'),
+    path('perfil-asistente/', views.perfil_asistente, name='perfil_asistente'),
+    path('organizador/', views.organizador, name='organizador'),
 ]

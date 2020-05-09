@@ -55,6 +55,25 @@
 
         <ul class="navbar-nav d-lg-flex align-items-center nav-fill ml-auto mr-1 my-1">
             {% if islogged == 'y' %}
+
+            {% if profile == 'org' %}
+            <li class="nav-item">
+                <a href={% url 'crear_evento' %}>
+                    <button class="btn btn-outline-success my-2 mx-2 my-sm-0" type="button">Crear evento</button>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href={% url 'gestionar_eventos' %}>
+                    <button class="btn btn-outline-success my-2 mx-2 my-sm-0" type="button">Gestionar eventos</button>
+                </a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+                <a href={% url 'misentradas' %}>
+                    <button class="btn btn-outline-success my-2 mx-2 my-sm-0" type="button">Mis entradas</button>
+                </a>
+            </li>
+            {% endif %}
             <li class="nav-item dropdown">
                 <a aria-expanded="false" aria-haspopup="true" class="nav-link dropdown-toggle" data-toggle="dropdown"
                    href="#" id="dropacciones">
@@ -63,14 +82,21 @@
                 <div aria-labelledby="navbarDropdownMenuLink" class="dropdown-menu dropdown-menu-right">
                     <a class="dropdown-item" href={% url 'mi_perfil' %}>Mi perfil</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href={% url 'misentradas' %}>Mis entradas</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href={% url 'crear_evento' %}>Crear evento</a>
-                    <a class="dropdown-item" href={% url 'gestionar_eventos' %}>Gestionar eventos</a>
+
+                    {% if profile == 'org' and not assist %}
+                    <a class="dropdown-item" href={% url 'registro_asistente' %}>Regístrate como asistente</a>
+                    {% elif profile == 'org' and assist %}
+                    <a class="dropdown-item" href={% url 'perfil_asistente' %}>Cambiar a modo asistente</a>
+                    {% elif profile == 'assist' and not org %}
+                    <a class="dropdown-item" href={% url 'registro_organizador' %}>Regístrate como organizador</a>
+                    {% else %}
+                    <a class="dropdown-item" href={% url 'perfil_organizador' %}>Cambiar a modo organizador</a>
+                    {% endif %}
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href={% url 'cerrar_sesion' %}>Cerrar sesión</a>
                 </div>
             </li>
+
 
             {% else %}
             <li class="nav-item">

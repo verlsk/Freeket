@@ -42,3 +42,8 @@ html {
 textarea{
   resize: none;
 }
+
+#btnOrganizador, #btnAmbos {
+    margin-left:2px;
+    margin-left:2px;
+}

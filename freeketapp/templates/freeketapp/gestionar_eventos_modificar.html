@@ -2,47 +2,83 @@
 
 {% block pagina %}
 
-<div class="container">
+
+
+<div class="col-md-10">
+<div class="container contCrear">
+    {% if errores is not None %}
+    <div class="alert alert-danger" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+    {% for i in errores %}
+        <li>{{ i }}</li>
+
+    {% endfor %}
+        </div>
+    {% endif %}
+
+
+    {% if publicado is not None %}
+    <div class="alert alert-success" role="alert">
+     Cambios realizados correctamente
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endif %}
     <form action="/gestionar-eventos/{{ id_evento }}/modificar/" method="post">
         {% csrf_token %}
         <div class="form-group">
-            <label for="tituloEvento">Elige el título de tu evento *</label>
+            <label for="tituloEvento"><strong>Cambia el título de tu evento *</strong></label>
             <input class="form-control" id="tituloEvento" name="tituloEvento" placeholder="Título" type="text"
                    value="{{ titulo }}">
         </div>
+        <label for="customFile"><strong>Cambia la imagen de tu evento</strong></label>
+        <div class="custom-file divImg">
+
+            <label class="custom-file-label" for="customFile">Seleccionar imagen</label>
+            <input type="file" name="imgEvento" id="customFile" class="custom-file-input" accept="image/x-png,image/jpeg" />
+
+        </div>
+
         <div class="form-group">
-            <label for="fechaEvento">Fecha del evento: *</label>
+                <label for="descripcion"><strong>Describe con todo detalle tu evento: *</strong></label>
+                <textarea class="form-control" id="descripcion" name = "descripcion" rows="8" >{{ descripcion }}</textarea>
+        </div>
+        <div class="form-group">
+            <label for="fechaEvento"><strong>Fecha del evento: *</strong></label>
             <input class="form-control" id="fechaEvento" name="fechaEvento"
                    placeholder="Haz clic para seleccionar la fecha"
                    type="text" value="{{ fecha }}">
         </div>
         <div class="form-group">
-            <label for="horaEvento">Selecciona la hora del evento: *</label>
+            <label for="horaEvento"><strong>Selecciona la hora del evento: *</strong></label>
             <input class="form-control" id="horaEvento" name="horaEvento" placeholder="Haz clic para determinar la hora"
                    type="text" value="{{ hora }}">
         </div>
         <div class="form-group">
-            <label for="nEntradas">Número total de entradas disponibles actualmente: *</label>
+            <label for="nEntradas"><strong>Número total de entradas disponibles actualmente: *</strong></label>
             <input class="form-control" id="nEntradas" name="nEntradas" placeholder="" type="text"
                    value="{{ nentradas }}">
         </div>
 
         <div class="form-group">
-            <label for="ciudad">Ciudad: *</label>
+            <label for="ciudad"><strong>Ciudad: *</strong></label>
             <input class="form-control" id="ciudad" name="ciudad" placeholder="" type="text" value="{{ ciudad }} ">
         </div>
         <div class="form-group">
-            <label for="direccion">Dirección: *</label>
+            <label for="direccion"><strong>Dirección: *</strong></label>
             <input class="form-control" id="direccion" name="direccion" placeholder="Ej. Calle Granada 5" type="text"
                    value="{{ direccion }}">
         </div>
         <div class="form-group">
-            <label for="cpostal">Código postal: *</label>
+            <label for="cpostal"><strong>Código postal: *</strong></label>
             <input class="form-control" id="cpostal" name="cpostal" placeholder="" type="text" value="{{ cpostal }}">
         </div>
 
         <div class="form-group">
-            <label for="nMaxEntradas">Número máximo de entradas que un usuario puede adquirir: *</label>
+            <label for="nMaxEntradas"><strong>Número máximo de entradas que un usuario puede adquirir: *</strong></label>
             <select class="form-control" id="nMaxEntradas" name="nMaxEntradas">
                 <option value="0">Sin límite</option>
                 <option value="1">1</option>
@@ -63,19 +99,14 @@
         </div>
 
         <div class="form-group">
-            <label for="notaInformativa">Puedes dejar una nota informativa que se enviará automáticamente a los asistentes al evento</label>
+            <label for="notaInformativa"><strong>Puedes dejar una nota informativa que se enviará automáticamente a los asistentes al evento</strong></label>
             <textarea class="form-control" id="notaInformativa" name = "notaInformativa" rows="4"></textarea>
         </div>
         <small class="form-text text-muted" id="info">* Campos obligatorios.</small>
-        <button class="btn btn-primary float-right" id="btnCrearEvento" type="submit">Modificar evento</button>
+        <button class="btn btn-outline-light float-right btnOrg" id="btnCrearEvento" type="submit" >Modificar evento</button>
     </form>
-    {% for i in errores %}
-    <p>{{ i }}</p>
-    {% endfor %}
-    {% if publicado is not None %}
-    <p>Cambios realizados correctamente</p>
-    {% endif %}
+
 
 </div>
-
+</div>
 {% endblock %}

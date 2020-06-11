@@ -2,43 +2,40 @@
 
 {% block contenido %}
 <div class="row">
-    <div class="col-sm-12 col-md-2 h-100">
+    <div class="col-sm-12 col-md-2 h-100 px-0">
 
-        <ul>
-            <li>
+
                 <a href={% url 'mi_perfil' %}>
-                <button type="button">Datos personales</button>
+        <button class="btn btn-outline-light btnSide {{ m_active }}" style="width:100%"><strong>DATOS PERSONALES</strong></button>
                 </a>
-            </li>
-            <li>
+
                 <a href={% url 'reset_password' %}>
-                <button type="button">Cambiar contraseña</button>
+        <button class="btn btn-outline-light btnSide {{ r_active }}" style="width:100%"><strong>CAMBIAR CONTRASEÑA</strong></button>
                 </a>
-            </li>
+
             {% if send == 'y' %}
-            <li>
+
                 <a href={% url 'confirmar_email' %}>
-                <button type="button">Confirmación de email</button>
+        <button class="btn btn-outline-light btnSide {{ c_active }}" style="width:100%"><strong>CONFIRMACIÓN DE EMAIL</strong></button>
                 </a>
-            </li>
+
             {% endif %}
 
             {% if profile == 'org' and not assist %}
-            <li>
+
                 <a href={% url 'registro_asistente' %}>
-                <button type="button">Regístrate como asistente</button>
+        <button class="btn btn-outline-light btnSide {{ a_active }}" style="width:100%"><strong>REGÍSTRATE COMO ASISTENTE</strong></button>
                 </a>
-            </li>
+
             {% elif profile == 'assist' and not org %}
-            <li>
+
                 <a href={% url 'registro_organizador' %}>
-                <button type="button">Regístrate como organizador</button>
+                <button class="btn btn-outline-light btnSide {{ o_active }}" style="width:100%"><strong>REGÍSTRATE COMO ORGANIZADOR</strong></button>
                 </a>
-            </li>
+
             {% endif %}
 
 
-        </ul>
     </div>
 
     <div class="col-md-10 col-sm-12">

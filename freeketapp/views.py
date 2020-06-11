@@ -24,7 +24,7 @@ import json
 import threading
 from django.template.loader import render_to_string
 from django.http import JsonResponse
-
+import os
 
 def index(request):
     context = {}
@@ -99,12 +99,24 @@ def crear_evento(request):
         try:
             org = Organizador.objects.filter(id=request.user.id)
             if org.count() == 0:
-                org = Organizador(nickname=request.user.username, id=request.user.id)
-                org.save()
+                return redirect('registro_organizador')
             else:
-                org = org[0]
+                if request.session['profile'] == 'org':
+                    org = org[0]
             titulo = request.POST.get('tituloEvento', '')
             context['titulo'] = titulo
+
+            img = ''
+
+            try:
+                img = request.FILES['imgEvento']
+            except:
+                img = 'm/default.jpg'
+            descripcion = request.POST.get('descripcion', '')
+            if descripcion == '':
+                errores.append("Escribe una descripción acerca de tu evento")
+            elif len(descripcion) > 20000:
+                errores.append("Tu descripción es demasiado larga")
             # formatear la fecha para que la bbdd la pueda almacenar
             fecha = request.POST.get('fechaEvento', '')
             fecha = validate_date(fecha)
@@ -115,6 +127,8 @@ def crear_evento(request):
 
             if not isTimeFormat(hora):
                 errores.append("Formato de hora incorrecto")
+
+
             nentradas = request.POST.get('nEntradas', '')
             nmaxentradas = request.POST.get('nMaxEntradas', '')
             ciudad = request.POST.get('ciudad', '')
@@ -141,21 +155,35 @@ def crear_evento(request):
             if titulo == '' or nentradas == '' or ciudad == '' or direccion == '' or cpostal == '' or not RepresentsInt(
                     nentradas) or int(nmaxentradas) < 0 or int(nmaxentradas) > 10 or int(nentradas) < 0:
                 errores.append("Campos obligatorios vacíos o erróneos")
-            context['errores'] = errores
+
             if len(errores) == 0:
                 context['publicado'] = True
+                context['errores'] = None
+
                 # generamos clave para desencriptar entradas de evento
                 key = Fernet.generate_key().decode()
                 # uuid para evento
                 id_evento = uuid.uuid4()
                 # usuario que organiza el evento
-                e = Evento(id=id_evento, titulo=titulo, url_id=url_id, fecha=fecha, hora=hora,
+                e = Evento(id=id_evento, img=img, descripcion=descripcion, titulo=titulo, url_id=url_id, fecha=fecha,
+                           hora=hora,
                            numero_entradas_inicial=nentradas,
                            max_entradas_user=nmaxentradas, numero_entradas_actual=nentradas,
                            organizador=org, key=key, ciudad=ciudad, direccion=direccion, cpostal=cpostal)
                 e.save()
+                if e.img.width < e.img.height:
+                    errores.append("La imagen debe ser horizontal")
+                    context['publicado'] = None
+                    path = os.getcwd() + '/media/' + e.img.name
+                    os.remove(path)
+                    e.delete()
+                else:
+                    errores = None
+                    context['errores'] = None
+
+            context['errores'] = errores
         except:
-            errores.append("Campos obligatorisos vacíos o erróneos")
+            errores.append("Campos obligatorios vacíos o erróneos")
             context['errores'] = errores
 
     return render(request, "freeketapp/plantilla_eventos.html", context)
@@ -236,7 +264,7 @@ def pagina_evento(request, id_evento):
 
             titulo_aux = evento.titulo
             context['titulo'] = titulo_aux
-
+            context['img'] = evento.img.url
             if evento.max_entradas_user != 0:
                 context['nmax'] = evento.max_entradas_user
             else:
@@ -247,13 +275,15 @@ def pagina_evento(request, id_evento):
             else:
                 context['mostrarcomprar'] = 'y'
 
-            esp_date_format = eng_date_format.strftime("%d de %B de %Y")
+            esp_date_format = eng_date_format.strftime("%A %d de %B de %Y")
             context['fecha'] = esp_date_format
             context['hora'] = evento.hora
             context['url_id'] = id_evento
             context['ciudad'] = evento.ciudad
             context['direccion'] = evento.direccion
             context['cpostal'] = evento.cpostal
+            context['descripcion'] = evento.descripcion
+
     except Evento.DoesNotExist:
         raise Http404("El evento no existe!")
     except ValueError:
@@ -264,6 +294,7 @@ def pagina_evento(request, id_evento):
 
 # Generacion de PDF con entrada
 def get_entrada(entrada, p):
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
     # encriptando texto
     key = entrada.evento.key.encode()
     f_key = Fernet(key)
@@ -279,14 +310,65 @@ def get_entrada(entrada, p):
     d = Drawing(150, 150, transform=[150. / w, 0, 0, 150. / h, 0, 0])
     d.add(qrw)
 
-    text = p.beginText(40, 750)
+    path = os.getcwd()
+
+    path += entrada.evento.img.url
+
+    img_w = entrada.evento.img.width
+    img_h = entrada.evento.img.height
+
+    new_w = 330 * (img_w / img_h)
+
+    x_margin = (600 - new_w) / 2
+    p.drawImage(path, x_margin, 200, height=330, width=new_w, mask='auto')
+
+    path = os.getcwd()
+
+    path += "/media/m/logo4.png"
+
+    p.drawImage(path, 250, 70, height=20, width=100, mask='auto')
+
+    titulo_1 = ""
+    titulo_2 = ""
+    cut = 0
+    if len(entrada.evento.titulo) > 32:
+        for i in entrada.evento.titulo[26:]:
+            if i == ' ':
+                break
+            cut += 1
+
+        titulo_1 = entrada.evento.titulo[:26+cut]
+        titulo_2 = entrada.evento.titulo[26+cut+1:]
+    else:
+        titulo_1 = entrada.evento.titulo
+    text = p.beginText(x_margin, 770)
+    text.setFont("Times-Roman", 22)
+    text.textLine(titulo_1)
+    text.textLine(titulo_2)
     text.setFont("Times-Roman", 14)
-    text.textLine("Aqui tienes tu entrada para: ")
-    text.textLine()
-    text.setFont("Times-Roman", 28)
-    text.textLine(entrada.evento.titulo)
+    eng_date_format = entrada.evento.fecha
+    esp_date_format = eng_date_format.strftime("%A %d de %B de %Y")
+    fecha = esp_date_format
+    text.textLine(fecha)
+    text.textLine(entrada.evento.hora)
+    text.setFont("Times-Roman", 11)
+    text.textLine(entrada.evento.ciudad)
+    text.textLine(entrada.evento.direccion)
+    text.textLine(entrada.evento.cpostal)
 
     p.drawText(text)
+
+    text = p.beginText(13, 27)
+    text.setFont("Times-Roman", 8)
+    text.textLine("Entrada adquirida por medio de Freeket. Ante cualquier duda o problema "
+                  "relacionado con la asistencia a este "
+                  "evento, contacte con el soporte de Freeket o con el organizador")
+    text.textLine("del evento. Esperamos que disfrute de la experiencia.")
+
+    p.drawText(text)
+
+    p.setStrokeColorRGB(0.427, 0.011, 0.313)
+    p.rect(x=10, y=10, width=575, height=820, stroke=True)
 
     return p, d
 
@@ -341,20 +423,25 @@ def mostrar_entrada(request, id_entrada):
 
 @login_required(login_url='/login')
 def misentradas(request):
+
     ids = []
-    titulos = []
+    evs = []
+    fechas = []
     context = {}
     # usuario = Usuario.objects.get(id=1)
     entradas = Entrada.objects.filter(usuario=request.user)
     for i in entradas:
-        ids.append(str(i.id))
-        titulos.append(i.evento.titulo)
+        ids.append(i)
+        evs.append(i.evento)
+        fechas.append(i.fecha_adquisicion.strftime("%d-%m-%Y"))
 
+    evs.reverse()
+    ids.reverse()
+    fechas.reverse()
     context['islogged'] = 'y'
     context['name'] = request.user.username
     context['ids'] = ids
-    context['titulos'] = titulos
-    context['elementos'] = zip(ids, titulos)
+    context['elementos'] = zip(ids, evs, fechas)
     context['profile'] = request.session['profile']
     if context['profile'] == 'org':
         return redirect('organizador')
@@ -422,7 +509,6 @@ def registro(request):
             user = User.objects.create_user(username, email, password)
             user.first_name = name
             user.last_name = apellido
-            print(user.id)
             if user_type == 'org':
                 org = Organizador(nickname=username, id=user.id, exclusive_org=True)
                 org.save()
@@ -455,11 +541,14 @@ def my_login(request):
     try:
         if request.method == 'POST':
             user_type = request.POST.get('user_type')
-            username = request.POST.get('username').lower()
+
+            username = request.POST.get('username')
+            if username is not None:
+                username = username.lower()
             password = request.POST.get('password')
             user = authenticate(request, username=username, password=password)
             if user is not None:
-                print(user_type)
+
                 if user_type == 'org':
                     org = Organizador.objects.filter(nickname=username)
                     if org.count() > 0:
@@ -470,7 +559,7 @@ def my_login(request):
                         return render(request, "freeketapp/login.html", context)
                 elif user_type == 'assist':
                     org = Organizador.objects.filter(nickname=username)
-                    print(org.count())
+
                     if org.count() > 0:
 
                         if org[0].exclusive_org:
@@ -526,7 +615,7 @@ def confirmation(request, id_confirmacion_url, user):
 
 @login_required(login_url='/login')
 def reset_password(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'],'r_active':"btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -537,6 +626,10 @@ def reset_password(request):
         else:
             context['assist'] = True
     errores = []
+    id_confirmacion = ConfirmationCode.objects.filter(usuario_id=request.user.id)
+
+    if id_confirmacion.count() > 0:
+        context['send'] = 'y'
     if request.method == 'POST':
         password = request.POST.get('oldpassword')
         user = authenticate(request, username=request.user, password=password)
@@ -596,7 +689,7 @@ def forgot_password_form(request):
 
 @login_required(login_url='/login')
 def mi_perfil(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'm_active':"btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -655,7 +748,7 @@ def mi_perfil(request):
 
 @login_required(login_url='/login')
 def confirmar_email(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'c_active':"btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -694,7 +787,7 @@ def gestionar_eventos(request):
     context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
-        #redirect
+        # redirect
         pass
     else:
         context['org'] = True
@@ -706,9 +799,14 @@ def gestionar_eventos(request):
 
     if org.count() == 1:
         org = org[0]
-        eventos = Evento.objects.filter(organizador=org)
-        context['eventos'] = eventos
-        context['mostrareventos'] = 'y'
+        eventos = list(Evento.objects.filter(organizador=org))
+        if len(eventos) > 0:
+            context['mostrareventos'] = 'y'
+            eventos.reverse()
+            context['eventos'] = eventos
+        else:
+            context['mostrareventos'] = 'n'
+
     else:
         context['mostrareventos'] = 'n'
         # no hay eventos que mostrar
@@ -718,7 +816,7 @@ def gestionar_eventos(request):
 
 @login_required(login_url='/login')
 def gestionar_eventos_evento(request, id_evento):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'e_active': "btnSideActive"}
 
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
@@ -775,7 +873,8 @@ def gestionar_eventos_evento(request, id_evento):
                 start_date += delta
 
         context['visitas'] = evento.visitas
-        context['n_entradas'] = str(numero_entradas_actual) + "/" + str(numero_entradas_inicial)
+        context['n_entradas'] = str(numero_entradas_actual)
+        context['n_entradas_inicial'] = str(numero_entradas_inicial)
         context['n_entradas_adquiridas'] = str(numero_entradas_inicial - numero_entradas_actual)
         context['data'] = data
         context['labels'] = json.dumps(labels)
@@ -806,7 +905,7 @@ def enviar_email_cambios(evento, text):
 @login_required(login_url='/login')
 def gestionar_eventos_modificar(request, id_evento):
     context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento,
-               'profile': request.session['profile']}
+               'profile': request.session['profile'], 'm_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -831,18 +930,31 @@ def gestionar_eventos_modificar(request, id_evento):
                 evento.titulo = titulo
                 cambios = True
             # formatear la fecha para que la bbdd la pueda almacenar
+
+            try:
+                img = request.FILES['imgEvento']
+                evento.img = img
+            except:
+                pass
+            descripcion = request.POST.get('descripcion', '')
+            if descripcion == '':
+                errores.append("Escribe una descripción acerca de tu evento")
+            elif len(descripcion) > 20000:
+                errores.append("Tu descripción es demasiado larga")
+            else:
+                evento.descripcion = descripcion
             fecha = request.POST.get('fechaEvento', '')
             fecha = validate_date(fecha)
             if not fecha:
                 errores.append("Formato de fecha incorrecto")
-
-            if fecha != evento.fecha:
-                evento.fecha = fecha
-                fecha = fecha.split("-")
-                fecha = fecha[2] + "-" + fecha[1] + "-" + fecha[0]
-                context['fecha'] = fecha
-                cambios = True
-                mandar_email = True
+            else:
+                if str(fecha) != str(evento.fecha):
+                    evento.fecha = fecha
+                    fecha = fecha.split("-")
+                    fecha = fecha[2] + "-" + fecha[1] + "-" + fecha[0]
+                    context['fecha'] = fecha
+                    cambios = True
+                    mandar_email = True
 
             hora = request.POST.get('horaEvento', '')
             if not isTimeFormat(hora):
@@ -886,6 +998,7 @@ def gestionar_eventos_modificar(request, id_evento):
             context['errores'] = errores
             if len(errores) == 0 and cambios == True:
                 context['publicado'] = True
+                context['errores'] = None
                 evento.save()
                 if mandar_email:
                     nota_informativa = request.POST.get('notaInformativa', '')
@@ -900,6 +1013,7 @@ def gestionar_eventos_modificar(request, id_evento):
         context['nentradas'] = evento.numero_entradas_actual
         context['ciudad'] = evento.ciudad
         context['direccion'] = evento.direccion
+        context['descripcion'] = evento.descripcion
         context['cpostal'] = evento.cpostal
         context['nmax'] = evento.max_entradas_user
     except Evento.DoesNotExist:
@@ -917,7 +1031,7 @@ def enviar_email_informativo(evento, text):
         user = User.objects.get(id=i['usuario'])
         title = "Notificación acerca de tu evento"
         content = "Hola, " + user.username + ":\n"
-        content += "Tienes una nota informativa de parte del organizador dredirectel evento: \"" + evento.titulo + "\""
+        content += "Tienes una nota informativa de parte del organizador del evento: \"" + evento.titulo + "\""
         content += ", al que tenías previsto asistir:"
 
         content += "\n\n    \"" + text + "\""
@@ -927,7 +1041,7 @@ def enviar_email_informativo(evento, text):
 @login_required(login_url='/login')
 def gestionar_eventos_notificacion(request, id_evento):
     context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento,
-               'profile': request.session['profile']}
+               'profile': request.session['profile'], 'n_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -973,13 +1087,15 @@ def enviar_email_cancelar(evento):
         content += ", al que tenías previsto asistir, lo ha cancelado. Sentimos lo ocurrido."
 
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
+    path = os.getcwd() + '/media/' + evento.img.name
+    os.remove(path)
     evento.delete()
 
 
 @login_required(login_url='/login')
 def gestionar_eventos_cancelar(request, id_evento):
     context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento,
-               'profile': request.session['profile']}
+               'profile': request.session['profile'], 'c_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     try:
         evento = Evento.objects.get(url_id=id_evento)
@@ -994,7 +1110,6 @@ def gestionar_eventos_cancelar(request, id_evento):
                 context['assist'] = False
             else:
                 context['assist'] = True
-        evento = Evento.objects.get(url_id=id_evento)
         if request.method == 'POST':
             t = threading.Thread(target=enviar_email_cancelar, args=(evento,), kwargs={})
             t.setDaemon(True)
@@ -1009,10 +1124,11 @@ def gestionar_eventos_cancelar(request, id_evento):
 @login_required(login_url='/login')
 def gestionar_eventos_asistentes(request, id_evento):
     context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento,
-               'profile': request.session['profile']}
+               'profile': request.session['profile'], 'l_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
+
     else:
         context['org'] = True
         if org[0].exclusive_org:
@@ -1058,7 +1174,6 @@ def eventos(request):
 
     if titulo is not None:
         evs = Evento.objects.filter(titulo__icontains=titulo)
-    print(evs)
     context['eventos'] = evs
 
     if request.is_ajax():
@@ -1106,7 +1221,7 @@ def perfil_asistente(request):
 
 @login_required(login_url='/login')
 def registro_asistente(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'a_active':"btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
 
@@ -1127,9 +1242,10 @@ def registro_asistente(request):
 
     return render(request, "freeketapp/registro_asistente.html", context)
 
+
 @login_required(login_url='/login')
 def registro_organizador(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'o_active':"btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -1145,7 +1261,8 @@ def registro_organizador(request):
         if tmp_org.count() > 0:
             return redirect('index')
         if request.POST.get('orgDireccion') != '':
-            org = Organizador(nickname=request.user.username, id = request.user.id, direccion=request.POST.get('orgDireccion'), exclusive_org=False)
+            org = Organizador(nickname=request.user.username, id=request.user.id,
+                              direccion=request.POST.get('orgDireccion'), exclusive_org=False)
             org.save()
             request.session['profile'] = 'org'
         else:

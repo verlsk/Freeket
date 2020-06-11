@@ -1,92 +1,110 @@
 {% extends "freeketapp/base.html" %}
 
 {% block contenido %}
-<div class="row">
-    <div class="col-sm-12 col-md-2 h-100">
+<div class="row rowStats">
+    <div class="col-md-2 px-0 panelGest">
 
-        <ul>
-            <li>
+
                 <a href="/gestionar-eventos/{{ id_evento }}">
-                <button type="button">Estadísticas</button>
+                <button class="btn btn-outline-light btnSide {{ e_active }}" style="width:100%"><strong>ESTADÍSTICAS</strong></button>
                 </a>
-            </li>
-            <li>
+
                 <a href="/gestionar-eventos/{{ id_evento }}/asistentes">
-                <button type="button">Lista de asistentes</button>
+                <button class="btn btn-outline-light btnSide {{ l_active }}" style="width:100%"><strong>LISTA DE ASISTENTES</strong></button>
                 </a>
-            </li>
-            <li>
+
                 <a href="/gestionar-eventos/{{ id_evento }}/modificar">
-                <button type="button">Modificar información</button>
+                <button class="btn btn-outline-light btnSide {{ m_active }}" style="width:100%"><strong>MODIFICAR INFORMACIÓN</strong></button>
                 </a>
-            </li>
-            <li>
+
                 <a href="/gestionar-eventos/{{ id_evento }}/notificacion">
-                <button type="button">Enviar notificación a los asistentes</button>
+                <button class="btn btn-outline-light btnSide {{ n_active }}" style="width:100%"><strong>ENVIAR NOTIFICACIÓN A LOS ASISTENTES</strong></button>
                 </a>
-            </li>
-            <li>
+
                 <a href="/gestionar-eventos/{{ id_evento }}/cancelar-evento">
-                <button type="button">Cancelar evento</button>
+                <button class="btn btn-outline-light btnSide {{ c_active }}" style="width:100%"><strong>CANCELAR EVENTO</strong></button>
                 </a>
-            </li>
-        </ul>
+
     </div>
+    {% block pagina %}
+    <div class="col-md-10 contStats">
 
-    <div class="col-md-10 col-sm-12">
-        {% block pagina %}
 
-        <div class="form-group">
+        <div class ="row">
+            <div class="col-md-3 text-center divStat">
+                <div class="form-group">
 
-            <label>Quedan</label>
-            <p>{{ n_entradas }}</p>
+                    <label><strong>Nº de entradas totales:</strong></label>
+                    <p>{{ n_entradas_inicial }}</p>
+
+                </div>
+            </div>
+            <div class="col-md-3 text-center divStat">
+                <div class="form-group">
+
+                    <label><strong>Nº de entradas restantes:</strong></label>
+                    <p>{{ n_entradas }}</p>
+
+                </div>
+            </div>
+            <div class="col-md-3 text-center divStat">
+                <div class="form-group">
+
+                    <label><strong>Nº de entradas adquiridas:</strong></label>
+                    <p>{{ n_entradas_adquiridas }}</p>
+
+                </div>
+            </div>
+            <div class="col-md-3 text-center divStat">
+                <div class="form-group">
+
+                <label><strong>Número de visitas al evento:</strong></label>
+                <p>{{ visitas }}</p>
+            </div>
+            </div>
 
         </div>
+        <div class ="row">
+            <div class="col-md-12">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
+            <div class="container canvCont">
+                <div class="box boxChart">
+                    <canvas id="lineChart" width="300" height="300"></canvas>
+                </div>
+                <div id="legends" class="chart-legend"></div>
+                <script language="JavaScript"><!--
+                  function displayLineChart() {
+                  var ctx = document.getElementById("lineChart").getContext("2d");
+                    var data = {
+                        labels: {{ labels|safe }},
+                        datasets: [
+                            {
+                                label: 'Número de entradas adquiridas por día',
+                                fillColor: "rgba(255,255,255,0)",
+                                strokeColor: "rgba(99, 25, 117,1)",
+                                pointColor: "rgba(237, 240, 91,1)",
+                                pointStrokeColor: "#000",
+                                pointHighlightFill: "#fff",
+                                pointHighlightStroke: "rgba(0,0,0,1)",
+                                data: {{ data }}
+                            }
+                        ]
+                    };
 
-        <div class="form-group">
+                    var options = {
+                        scaleFontColor: "#000",
+                    };
+                    var lineChart = new Chart(ctx).Line(data, options);
+                    document.getElementById('legends').innerHTML = lineChart.generateLegend();
+                  }
 
-            <label>Entradas adquiridas</label>
-            <p>{{ n_entradas_adquiridas }}</p>
+                  window.onload = displayLineChart();
+                  --></script>
 
+
+                </div>
+            </div>
         </div>
-
-        <div class="form-group">
-
-            <label>Número de visitas</label>
-            <p>{{ visitas }}</p>
-
-        </div>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.2/Chart.min.js"></script>
-
-
-        <div class="box">
-            <canvas id="lineChart" height="450" width="800"></canvas>
-        </div>
-        <script language="JavaScript"><!--
-  function displayLineChart() {
-    var data = {
-        labels: {{ labels|safe }},
-        datasets: [
-            {
-                label: "Prime and Fibonacci",
-                fillColor: "rgba(220,220,220,0.2)",
-                strokeColor: "rgba(220,220,220,1)",
-                pointColor: "rgba(220,220,220,1)",
-                pointStrokeColor: "#fff",
-                pointHighlightFill: "#fff",
-                pointHighlightStroke: "rgba(220,220,220,1)",
-                data: {{ data }}
-            }
-        ]
-    };
-    var ctx = document.getElementById("lineChart").getContext("2d");
-    var options = { };
-    var lineChart = new Chart(ctx).Line(data, options);
-  }
-  window.onload = displayLineChart();
-  --></script>
-        {% endblock %}
-    </div>
+    {% endblock %}
 </div>
 {% endblock %}

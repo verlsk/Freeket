@@ -1,15 +1,28 @@
 {% extends "freeketapp/base.html" %}
 
 {% block contenido %}
-<div class="container">
-    <h1>Aquí tienes todas tus entradas</h1>
+<div class="container contGestEvs">
 
-    {% for i, t in elementos %}
-    <div class="form-group">
-        <label>{{ t }}: </label>
-        <a href="{{ i }}">
-            <button type="button">Descargar</button>
-        </a>
+    {% for i, e, f in elementos %}
+    <div class="row ">
+        <div class="col-md-12 align-items-center">
+            <div class="media position-relative mediaGestEvs">
+              <img src="{{ e.img.url }}" class="mr-3" alt="Imagen del evento" width="100px">
+              <div class="media-body">
+                <h5 class="mt-0">{{ e.titulo }} </h5>
+
+                  <div class ="row">
+                      <div class="col-md-3">
+                  <small>(Adquirida el {{ f }})</small>
+                  </div>
+                  <div class="col-md-9">
+                  <a href="{{ i.id }}"><button class="btn btn-outline-light btnGest ml-1 float-right">Descargar</button></a>
+                  <a href="/evento/{{ e.url_id }}"><button class="btn btn-outline-light btnGest ml-1 float-right">Pagina del evento</button></a>
+                      </div>
+                  </div>
+              </div>
+            </div>
+        </div>
     </div>
     {% endfor %}
 

@@ -2,24 +2,43 @@
 
 {% block pagina %}
 
-<div class="container">
+<div class="col-md-10 contStats align-self-center">
+<div class="container contCrear text-center">
+
+    {% if errores is not None %}
+    <div class="alert alert-danger" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+    {% for i in errores %}
+        <li>{{ i }}</li>
+
+    {% endfor %}
+        </div>
+    {% endif %}
+
+
+    {% if enviado %}
+    <div class="alert alert-success" role="alert">
+     Notificación enviada correctamente. Los asistentes recibirán tu mensaje.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endif %}
     <form action="/gestionar-eventos/{{ id_evento }}/notificacion/" method="post">
         {% csrf_token %}
 
         <div class="form-group">
-            <label for="notaInformativa">Puedes dejar una nota informativa que se enviará automáticamente a los asistentes al evento</label>
+            <label for="notaInformativa"><strong>Puedes dejar una nota informativa que se enviará automáticamente a los asistentes al evento</strong></label>
             <textarea class="form-control" id="notaInformativa" name = "notaInformativa" rows="4"></textarea>
         </div>
 
-        <button class="btn btn-primary float-right" id="btnCrearEvento" type="submit">Enviar notificación</button>
+        <button class="btn btn-outline-light btnOrg" id="btnCrearEvento" type="submit">Enviar notificación</button>
     </form>
 
-    {% for i in errores %}
-    <p>{{ i }}</p>
-    {% endfor %}
-    {% if enviado %}
-    <p>Notificación enviada correctamente. Los asistentes recibirán tu mensaje.</p>
-    {% endif %}
+</div>
+
 </div>
 
 {% endblock %}

@@ -1,34 +1,35 @@
 {% extends "freeketapp/gestionar_eventos_evento.html" %}
 
 {% block pagina %}
+<div class="col-md-10 contStats align-self-center">
+    <div class="container contCrear text-center">
+        <p><strong>Si cancelas el evento, se notificará a tus asistentes automáticamente por email</strong></p>
+        <p><strong>Si quieres dejar una nota extra, accede al apartado "Enviar notificación a los asistentes"</strong></p>
+        <button class="btn btn-lg btn-outline-light btnOrg" id="btnCrearEvento" data-target="#exampleModal" data-toggle="modal" type="button">
+            Cancelar evento
+        </button>
 
-<div class="container">
-    <p>Si cancelas el evento, se notificará a tus asistentes automáticamente por email</p>
-    <p>Si quieres dejar una nota extra, accede al apartado "Enviar notificación a los asistentes"</p>
-    <button class="btn btn-primary float-right" data-target="#exampleModal" data-toggle="modal" type="button">
-        Cancelar evento
-    </button>
-
-    <!-- Modal -->
-    <div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade" id="exampleModal" role="dialog"
-         tabindex="-1">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">¿Estás seguro de que quieres cancelar el evento?</h5>
-                    <button aria-label="Close" class="close" data-dismiss="modal" type="button">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    Se notificará a los asistentes automáticamente
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" data-dismiss="modal" type="button">Cerrar</button>
-                    <form action="/gestionar-eventos/{{ id_evento }}/cancelar-evento/" method="post">
-                     {% csrf_token %}
-                        <button class="btn btn-primary" type="submit">Cancelar evento</button>
-                    </form>
+        <!-- Modal -->
+        <div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade" id="exampleModal" role="dialog"
+             tabindex="-1">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">¿Estás seguro de que quieres cancelar el evento?</h5>
+                        <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Se notificará a los asistentes automáticamente
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-light btnOrg" data-dismiss="modal" type="button">Cerrar</button>
+                        <form action="/gestionar-eventos/{{ id_evento }}/cancelar-evento/" method="post">
+                         {% csrf_token %}
+                            <button class="btn btn-outline-light btnOrg" type="submit">Cancelar evento</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>

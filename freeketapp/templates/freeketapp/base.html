@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="utf-8">
     <meta content="IE=edge" http-equiv="X-UA-Compatible">
@@ -8,9 +8,10 @@
     <meta content="Freeket" name="description">
     <meta content="Alberto Angulo Lucerón" name="author">
 
-    <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet">
+   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <title>{% block title %}Freeket{% endblock %}</title>
+    {% load static %}
+    <link rel="shortcut icon" href="{% static 'freeketapp/logopest.png' %}">
 
     {% load static %}
     <link href="{% static 'freeketapp/jquery.timepicker.css' %}" rel="stylesheet">
@@ -27,7 +28,7 @@
 
 {% block header %}
 
-<nav class="navbar navbar-expand-lg navbar-dark py-2">
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom py-2">
     <div class="clearfix-xs">
         <button aria-controls="navbarColor02" aria-expanded="false" aria-label="Toggle navigation"
                 class="navbar-toggler"
@@ -36,16 +37,22 @@
         </button>
     </div>
 
-    <a class="navbar-brand" href="/">Freeket</a>
-
+    <a href={% url 'index' %} class="navbar-brand navbar-left">
+                <!-- Logo Image -->
+                {% load static %}
+                <img src="{% static 'freeketapp/logo5.png' %}" width="120" alt=""
+                    class="d-inline-block align-middle mr-2">
+                <!-- Logo Text -->
+            </a>
     <form class="mx-2 d-inline w-50" action="/eventos/" method="get">
 
-        <div class="input-group form-rounded">
-            <input class="form-control form-rounded" id="busqueda" name = "titulo" placeholder="Busca tu evento" type="text">
-            <div class="input-group-append">
+        <div class="input-group form-rounded has-search">
 
-            </div>
+            <input class="form-control form-rounded" id="busqueda" name = "titulo" placeholder="Busca tu evento" type="text">
+            <span class="fa fa-search form-control-feedback"></span>
+
         </div>
+
 
     </form>
 
@@ -59,18 +66,18 @@
             {% if profile == 'org' %}
             <li class="nav-item">
                 <a href={% url 'crear_evento' %}>
-                    <button class="btn btn-outline-success my-2 mx-2 my-sm-0" type="button">Crear evento</button>
+                    <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Crear evento</strong></button>
                 </a>
             </li>
             <li class="nav-item">
                 <a href={% url 'gestionar_eventos' %}>
-                    <button class="btn btn-outline-success my-2 mx-2 my-sm-0" type="button">Gestionar eventos</button>
+                <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Gestionar eventos</strong></button>
                 </a>
             </li>
             {% else %}
             <li class="nav-item">
                 <a href={% url 'misentradas' %}>
-                    <button class="btn btn-outline-success my-2 mx-2 my-sm-0" type="button">Mis entradas</button>
+                <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Mis entradas</strong></button>
                 </a>
             </li>
             {% endif %}
@@ -101,12 +108,12 @@
             {% else %}
             <li class="nav-item">
                 <a href="/login/">
-                    <button class="btn btn-outline-success my-2 mx-2 my-sm-0" type="button">Inicia sesión</button>
+                    <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Inicia sesión</strong></button>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="/registro/">
-                    <button class="btn btn-outline-success my-2 my-sm-0" type="button">Regístrate</button>
+                    <button class="btn btn-outline-light my-2 my-sm-0" type="button"><strong>Regístrate</strong></button>
                 </a>
             </li>
             {% endif %}
@@ -125,6 +132,11 @@
 {% endblock %}
 
 
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
 <script crossorigin="anonymous"
         integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
         src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
@@ -134,11 +146,15 @@
 <script crossorigin="anonymous"
         integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
         src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.1/Chart.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="https://use.fontawesome.com/27d78594d9.js"></script>
 {% load static %}
 <script src="{% static 'freeketapp/jquery.timepicker.js' %}"></script>
 

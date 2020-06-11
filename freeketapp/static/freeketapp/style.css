@@ -3,7 +3,7 @@ html {
     position: relative;
   }
   body {
-      background-color: #E2F5FF;
+      background-color: #faf5fc;
   }
 
   .navbar .nav-item:hover .nav-link {
@@ -17,7 +17,7 @@ html {
       font-weight: bold;
   }
   .navbar {
-      background-color: #224367;
+
       padding-top: 50;
       padding-bottom: 0;
   }
@@ -38,6 +38,30 @@ html {
       background-color: transparent;
 
 }
+@media only screen and (max-width: 600px) {
+  .navbar-brand {
+   width: 60px;
+   margin-left:2px;
+   margin-right:60px;
+  }
+}
+
+
+.navbar-custom {
+
+    background-image: url("back6.png");
+      background-repeat: no-repeat;
+      background-size: cover; /* Resize the background image to cover the entire container */
+
+  background-position: center; /* Center the image */
+}
+.dropdown-menu {
+    background-image: url("back6.png")
+}
+.dropdown-item {
+    color: #ffffff;
+}
+
 
 textarea{
   resize: none;
@@ -46,4 +70,162 @@ textarea{
 #btnOrganizador, #btnAmbos {
     margin-left:2px;
     margin-left:2px;
+}
+
+.has-search .form-control {
+    padding-left: 2.375rem;
+}
+
+.has-search .form-control-feedback {
+    position: absolute;
+    z-index: 2;
+    display: block;
+    width: 2.375rem;
+    height: 2.375rem;
+    line-height: 2.375rem;
+    text-align: center;
+    pointer-events: none;
+    color: #aaa;
+}
+#jumboEvento {
+    margin-top: 30px;
+    border-style: solid;
+    border-width: 5px;
+    border-color: #360a4a;
+    background-color: #FFFFFF;
+}
+#titEvento {
+    border-bottom-style: groove;
+  border-bottom-width: 2px;
+  border-color: #6d1e8a;
+  margin-bottom: 7px;
+   font-family: "AvantGarde";
+}
+
+#btnComprar{
+    background-color:#6d1e8a;
+    border-color:#3d0c4f;
+    margin-top:30px;
+}
+#rowComprar, #rowDescripcion {
+    margin-top:30px;
+}
+#colDescripcion {
+margin-top:15px;
+}
+.cardOrg {
+    margin-top:30px;
+}
+
+.btnGest, .btnOrg, .btnSide {
+    border-color:#3d0c4f;
+    color: #6d1e8a;
+}
+.btnSide {
+    padding-top: 15%;
+    padding-bottom: 15%;
+    border-bottom:0;
+    border-top:0;
+    border-right:0;
+    font-size:17px;
+}
+.btnSide:hover, .btnSide:focus, .btnSideActive {
+
+    background-color:#f2e6f7;
+    color: #6d1e8a;
+}
+.btnOrg:hover, .btnOrg:focus, .btnGest:hover, .btnGest:focus {
+    border-color:#3d0c4f;
+    background-color:#6d1e8a;
+    color: #ffffff
+}
+.mediaGestEvs {
+    margin-bot:15px;
+    margin-top: 10px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #442d4f;
+    background-color: #FFFFFF;
+}
+.contGestEvs {
+    border-style: solid;
+    border-width: 2px;
+    border-color: #360a4a;
+    margin-top:30px;
+    background-color: #FFFFFF;
+}
+.btnGest {
+    margin-bottom:10px;
+}
+
+.panelGest {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #cdc1d4;
+    border-right-style: solid;
+    border-right-width: 1px;
+    border-right-color: #442d4f;
+}
+canvas {
+  width: 75%;
+  height: 600px;
+  display: inline;
+}
+@media only screen and (max-width: 600px) {
+    .btnSide {
+        padding-top:10px;
+        padding-bottom:10px;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
+        border-bottom-color: #360a4a;
+        font-size:15px;
+    }
+    canvas {
+      width: 100%;
+      height: 300px;
+      display: inline;
+    }
+}
+#lineChart{
+    background-color:#fff;
+}
+.rowStats {
+    margin:0px;
+}
+.rowStats {
+
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #cdc1d4;
+}
+.canvCont {
+    text-align:center;
+    margin-top:15px;
+}
+.divStat {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: #cdc1d4;
+    border-right-style: solid;
+    border-right-width: 1px;
+    border-right-color: #442d4f;
+    background-color:#fff;
+}
+
+.chart-legend span {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 5px;
+}
+
+.contCrear {
+    margin-top:10px;
+
+}
+#btnCrearEvento{
+    margin-bottom:20px;
+}
+.divImg {
+    margin-bottom:10px;
 }

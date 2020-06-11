@@ -1,18 +1,27 @@
 {% extends "freeketapp/base.html" %}
-{% block title %}{{ titulo }}{% endblock %}
+{% block title %}Gestionar eventos{% endblock %}
 
 {% block contenido %}
 
-<div class = "container">
-{% if mostrareventos == 'y' %}
+<div class = "container contGestEvs">
+{% if mostrareventos == 'y'%}
 
     {% for e in eventos %}
-    <div class="form-group">
-    <label>{{ e.titulo }}: </label>
-    <a href="{{ e.url_id }}">
-        <button type="button">Gestionar</button>
-    </a>
+    <div class="row">
+        <div class="col-md-12 align-items-center">
+            <div class="media position-relative mediaGestEvs">
+              <img src="{{ e.img.url }}" class="mr-3" alt="Imagen del evento" width="100px">
+              <div class="media-body">
+                <h5 class="mt-0">{{ e.titulo }}</h5>
+                  <a href="#"><button class="btn btn-outline-light btnGest ml-1 float-right"><img src="/media/m/ar-camera.png" width="20" />&nbspLeer entradas</button></a>
+                  <a href="{{ e.url_id }}"><button class="btn btn-outline-light btnGest ml-1 float-right">Gestionar</button></a>
+                  <a href="/evento/{{ e.url_id }}"><button class="btn btn-outline-light btnGest ml-1 float-right">Pagina del evento</button></a>
+              </div>
+            </div>
+        </div>
     </div>
+
+
     {% endfor %}
 
     {% else %}

@@ -14,6 +14,7 @@ class Organizador(models.Model):
 class Evento(models.Model):
     id = models.UUIDField(null=False, primary_key=True, default=uuid.uuid4)
     titulo = models.CharField(max_length=50)
+    descripcion = models.CharField(max_length=20000, default="")
     url_id = models.CharField(max_length=100, default='default')
     fecha = models.DateField()
     hora = models.CharField(max_length=5)
@@ -27,6 +28,8 @@ class Evento(models.Model):
     organizador = models.ForeignKey(Organizador, on_delete=models.CASCADE, default=1)
     fecha_creacion = models.DateField(default=date.today())
     visitas = models.IntegerField(default=0)
+    img = models.ImageField(upload_to='m', blank=True)
+
     objects = models.Manager()
 
 

@@ -3,30 +3,38 @@
 
 {% block contenido %}
 
-<div class="container">
+ {% if texto is not None %}
+        <div class="alert alert-danger" role="alert">
+             {{ texto }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endif %}
+<div class="container contCrear">
+
     <form action={% url 'login' %} method="post">
 {% csrf_token %}
     <input type="hidden" id="userType" name="user_type" value="assist">
-    <div class="form-inline">
-        <button class="btn btn-primary active" id="btnAsistente" type="button">Asistente</button>
-        <button class="btn btn-primary" id="btnOrganizador"type="button">Organizador</button>
-    </div>
+
+        <div class="form-group">
+        <label>Perfil de inicio: </label>
+        <button class="btn btn-outline-light btnOrg btnSideActive" id="btnAsistente" type="button">Asistente</button>
+        <button class="btn btn-outline-light btnOrg" id="btnOrganizador"type="button">Organizador</button>
+            </div>
+
     <input type="hidden" name="next" value="{{ request.GET.next }}">
         <div class="form-group">
-            <label for="username">Nombre de usuario: </label>
+            <label for="username"><strong>Nombre de usuario: <strong></label>
             <input class="form-control" id="username" name="username"
                    type="text">
         </div>
         <div class="form-group">
-            <label for="password">Contraseña: </label>
+            <label for="password"><strong>Contraseña: </strong></label>
             <input class="form-control" id="password" name="password" type="password">
         </div>
-        <small class="form-text text-muted"> <a href={% url 'forgot_password_form' %}>He olvidado la contraseña</a>.</small>
-
-        {% if texto is not None %}
-        <p>{{ texto }}</p>
-        {% endif %}
-        <button class="btn btn-primary float-right" type="submit">Iniciar sesión</button>
+        <small class="form-text text-muted forgot"> <a href={% url 'forgot_password_form' %}>He olvidado la contraseña</a>.</small>
+        <button class="btn btn-outline-light btnOrg float-right" id="btnCrearEvento" type="submit">Iniciar sesión</button>
     </form>
 </div>
 

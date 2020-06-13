@@ -1,0 +1,10 @@
+{% extends "freeketapp/base.html" %}
+
+{% block contenido %}
+<input id="urlId" name="urlId" type="hidden" value="{{ url }}">
+<div class="container contReader">
+
+<div style="width: 100%" id="qr-reader"></div>
+<div id="qr-reader-results"></div>
+</div>
+{% endblock %}

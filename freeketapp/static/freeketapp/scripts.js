@@ -19,8 +19,9 @@ $(document).ready(function () {
     }
 
 
-    const user_input = $("#busqueda")
-    const eventos_div = $('#replaceable-content')
+   const user_input = $("#busqueda")
+
+    const eventos_div = $('#replaceableContent')
     const endpoint = '/eventos/'
     const delay_by_in_ms = 100
     let scheduled_function = false
@@ -28,51 +29,62 @@ $(document).ready(function () {
     let ajax_call = function (endpoint, request_parameters) {
         $.getJSON(endpoint, request_parameters)
             .done(response => {
-                // fade out the artists_div, then:
-                eventos_div.fadeTo('fast', 0).promise().then(() => {
-                    // replace the HTML contents
-                    eventos_div.html(response['html_from_view'])
-                    // fade-in the div with new contents
-                    eventos_div.fadeTo('fast', 1)
+
+                    html_content = "";
+                    for (i = 0; i < response.length; i++) {
+
+                      html_content += '<div class="elemento-busqueda"><a href="/evento/'+response[i]["fields"]["url_id"]+'"> <div style="background-image: url(/media/' + response[i]["fields"]["img"] + ')" class="image-busqueda"></div><div class="text-busqueda"><div class="text-main-busqueda"><strong>'+response[i]["fields"]["titulo"]+'</strong></div></div></a></div>'
+
+                    }
+                    eventos_div.html(html_content)
+
                 })
-            })
-    }
+            }
+
 
 
     user_input.on('keyup', function () {
+        if ($(this).val()==''){
+            eventos_div.html("");
+            $("#box-busqueda").addClass("d-none");
 
-        const request_parameters = {
-            titulo: $(this).val() // value of user_input: the HTML element with ID user-input
+        } else {
+            $('#box-busqueda').removeClass('d-none');
+            const request_parameters = {
+                titulo: $(this).val() // value of user_input: the HTML element with ID user-input
+
+            }
+
+
+            // if scheduled_function is NOT false, cancel the execution of the function
+            if (scheduled_function) {
+                clearTimeout(scheduled_function)
+            }
+
+            // setTimeout returns the ID of the function to be executed
+            scheduled_function = setTimeout(ajax_call, delay_by_in_ms, endpoint, request_parameters)
         }
-
-        // if scheduled_function is NOT false, cancel the execution of the function
-        if (scheduled_function) {
-            clearTimeout(scheduled_function)
-        }
-
-        // setTimeout returns the ID of the function to be executed
-        scheduled_function = setTimeout(ajax_call, delay_by_in_ms, endpoint, request_parameters)
     });
 
     $("#btnOrganizador").click(function(){
         $("#infoOrg").removeClass("d-none")
-        $("#btnOrganizador").addClass("active")
-        $("#btnAmbos").removeClass("active")
-        $("#btnAsistente").removeClass("active")
+        $("#btnOrganizador").addClass("btnSideActive")
+        $("#btnAmbos").removeClass("btnSideActive")
+        $("#btnAsistente").removeClass("btnSideActive")
         $("#userType").val('org')
     });
     $("#btnAmbos").click(function(){
         $("#infoOrg").removeClass("d-none")
-        $("#btnOrganizador").removeClass("active")
-        $("#btnAmbos").addClass("active")
-        $("#btnAsistente").removeClass("active")
+        $("#btnOrganizador").removeClass("btnSideActive")
+        $("#btnAmbos").addClass("btnSideActive")
+        $("#btnAsistente").removeClass("btnSideActive")
         $("#userType").val('both')
     });
     $("#btnAsistente").click(function(){
         $("#infoOrg").addClass("d-none")
-        $("#btnOrganizador").removeClass("active")
-        $("#btnAmbos").removeClass("active")
-        $("#btnAsistente").addClass("active")
+        $("#btnOrganizador").removeClass("btnSideActive")
+        $("#btnAmbos").removeClass("btnSideActive")
+        $("#btnAsistente").addClass("btnSideActive")
         $("#userType").val('assist')
     });
 
@@ -80,5 +92,47 @@ $(document).ready(function () {
       var fileName = $(this).val().split("\\").pop();
       $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
     });
+    let s_function = false
+    var url_id = $('#urlId').val()
+
+    const endpoint_read = '/reader/'
+    delay_by_in_ms_read = 100
+     let ajax_call_read = function (endpoint_read, request_parameters) {
+        $.getJSON(endpoint_read, request_parameters)
+            .done(response => {
+
+                    if (response['resp'] == true)
+                        alert("Correcto!");
+
+                    else {
+                        if (response['resp'] == 'ya validada')
+                            alert("La entrada ya se ha usado")
+                    }
+
+                })
+            }
+    function onScanSuccess(qrCodeMessage) {
+
+          // if scheduled_function is NOT false, cancel the execution of the function
+
+        const request_parameters = {
+                id: qrCodeMessage,
+                url: url_id // value of user_input: the HTML element with ID user-input
+
+        }
+
+        if (s_function) {
+            clearTimeout(s_function)
+        }
+
+        // setTimeout returns the ID of the function to be executed
+        s_function = setTimeout(ajax_call_read, delay_by_in_ms_read, endpoint_read, request_parameters)
+
+    }
+    var w = $('.contReader').width() / 2;
+    var html5QrcodeScanner = new Html5QrcodeScanner(
+
+    "qr-reader", { fps: 10, qrbox: w });
+    html5QrcodeScanner.render(onScanSuccess);
 
 });

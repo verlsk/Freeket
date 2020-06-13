@@ -35,14 +35,15 @@
     {% endif %}
 <div class = "container contCrear">
 
-    <form action={% url 'crear_evento' %} method="post" enctype="multipart/form-data">
+    <form autocomplete="off" action={% url 'crear_evento' %} method="post" enctype="multipart/form-data">
     {% csrf_token %}
+    <input autocomplete="false" name="hidden" type="text" style="display:none;">
     <div class="form-group">
         <label for="tituloEvento"><strong>Elige el título de tu evento *</strong></label>
         <input class="form-control" id="tituloEvento" name="tituloEvento" placeholder="Título" type="text">
     </div>
     <label for="customFile"><strong>Selecciona una imagen para tu evento</strong></label>
-    <div class="custom-file">
+    <div class="custom-file divImg">
 
         <label class="custom-file-label" for="customFile">Seleccionar imagen</label>
         <input type="file" name="imgEvento" id="customFile" class="custom-file-input" accept="image/x-png,image/jpeg" />

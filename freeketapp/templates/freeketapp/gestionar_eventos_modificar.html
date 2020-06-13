@@ -27,8 +27,9 @@
         </button>
     </div>
     {% endif %}
-    <form action="/gestionar-eventos/{{ id_evento }}/modificar/" method="post">
+    <form autocomplete="off" action="/gestionar-eventos/{{ id_evento }}/modificar/" method="post" enctype="multipart/form-data">
         {% csrf_token %}
+        <input autocomplete="false" name="hidden" type="text" style="display:none;">
         <div class="form-group">
             <label for="tituloEvento"><strong>Cambia el título de tu evento *</strong></label>
             <input class="form-control" id="tituloEvento" name="tituloEvento" placeholder="Título" type="text"

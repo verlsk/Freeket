@@ -38,6 +38,7 @@ class Entrada(models.Model):
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
     id = models.UUIDField(null=False, primary_key=True, default=uuid.uuid4)
     fecha_adquisicion = models.DateField(default=date.today())
+    validada = models.BooleanField(default=False)
     objects = models.Manager()
 
 

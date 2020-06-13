@@ -28,7 +28,7 @@ html {
   }
 
   #busqueda{
-      border-radius:20px;
+      border-radius:2px;
     }
 
 .navbar-collapse.collapsing,
@@ -228,4 +228,72 @@ canvas {
 }
 .divImg {
     margin-bottom:10px;
+}
+.box-busqueda{background-color:#fff;width:100%;max-height:500px;overflow-y:scroll;border:1px solid #ccc;border-bottom-left-radius:4px;border-bottom-right-radius:4px;box-shadow:12px 14px 30px -7px #616161;border-top:0;margin-top:-3px;border-color:#66afe9}
+.box-busqueda::-webkit-scrollbar{
+  display: none;
+}
+}
+.elemento-busqueda{padding:3px 5px 3px 4px;white-space:nowrap;cursor:pointer;color:#555;font-size:14px}
+.elemento-busqueda:focus, .elemento-busqueda:hover{background-color:#337ab7;color:#fff}
+.image-busqueda{width:40px;height:40px;display:inline-block;vertical-align:middle;background-size:cover;background-position:50% 50%;margin-right:3px}
+.text-busqueda {colour:black;padding:0 5px;display:inline-block;font-weight:400}
+.text-main-busqueda {display:block;margin-bottom:-1px;margin-top:-2px;colorl:black}
+
+.contBus {
+    margin-top:35px;
+}
+
+.btnExplora {
+
+    background-color:#f5f5f5;
+}
+.contInicio {
+    margin-top:50px;
+}
+.contCar {
+    margin-top:15px;
+
+}
+.carousel {
+    background-color:#fff;
+}
+.descCar {
+    margin-bot:10px;
+}
+#btnCrearEvento2{
+    margin-bottom:20px;
+}
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+
+  background-image:none;
+}
+.carousel-control-next-icon:after
+{
+    content:'>';
+  font-size: 45px;
+  color: purple;
+}
+
+.carousel-control-prev-icon:after {
+content:'<';
+  font-size: 45px;
+  color: purple;
+}
+.titCar {
+font-weight:bolder;
+color:#40105e;
+    padding-bottom:5px;
+    border-bottom-style: groove;
+  border-bottom-width: 2px;
+  border-color: #562675;
+  margin-bottom: 7px;
+}
+.textCar {
+    font-family: "MS Gothic, Verdana, Times New Roman";
+    margin-top:15px;
+}
+.contEventosIni {
+margin-top:100px;
 }

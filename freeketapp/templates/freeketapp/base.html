@@ -44,23 +44,43 @@
                     class="d-inline-block align-middle mr-2">
                 <!-- Logo Text -->
             </a>
-    <form class="mx-2 d-inline w-50" action="/eventos/" method="get">
 
-        <div class="input-group form-rounded has-search">
+    <div class="collapse navbar-collapse " id="navbarColor02">
 
-            <input class="form-control form-rounded" id="busqueda" name = "titulo" placeholder="Busca tu evento" type="text">
-            <span class="fa fa-search form-control-feedback"></span>
 
+
+    <form autocomplete="off" class="mx-2 d-inline w-50" action={% url 'resultados' %} method="post">
+    {% csrf_token %}
+    <input autocomplete="false" name="hidden" type="text" style="display:none;">
+        <div class="input-group">
+
+            <input type="text" class="form-control" id="busqueda" placeholder="Busca tu evento" name="titulo">
+            <div class="input-group-append">
+                <button class="btn btn-secondary" type="submit">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+             <div role ="listbox" class="box-busqueda d-none" id="box-busqueda" aria-expanded="false" style="position: absolute; top: 100%; left: 0px; z-index: 100; display: hidden;">
+                <div role="presentation" style="hidden">
+                    <div id="replaceableContent">
+
+                    </div>
+                </div>
+             </div>
         </div>
 
 
     </form>
 
 
-    <div class="collapse navbar-collapse " id="navbarColor02">
 
+    <ul class="navbar-nav d-lg-flex align-items-center nav-fill ml-auto mr-1 my-1">
 
-        <ul class="navbar-nav d-lg-flex align-items-center nav-fill ml-auto mr-1 my-1">
+            <li class="nav-item">
+                <a href={% url 'eventos' %}>
+                    <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Explora</strong></button>
+                </a>
+            </li>
             {% if islogged == 'y' %}
 
             {% if profile == 'org' %}
@@ -126,12 +146,82 @@
 
 {% block contenido %}
 
-<div id="replaceable-content">
 
-</div>
+    <div class="container contInicio">
+
+
+
+        <div id="carouselInicio" class="carousel slide" data-ride="carousel">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+
+                <div class="row">
+                <div class="col-lg-3 descCar">
+                    <div class="container text-center contCar">
+                      <h3 class="titCar">Descubre eventos</h3>
+                      <p class="text-justify textCar">Consulta todos los eventos organizados a través de Freeket y no dudes en asistir a alguno de ellos. Recuerda: ¡es gratis!</p>
+                      <a href="/eventos/"> <button class="btn btn-outline-light btnOrg btn-lg btnCar" id="btnCrearEvento2">Descubre</button></a>
+                    </div>
+                </div>
+                <div class="col-lg-9">
+                   <a href="/eventos/"> <img class="d-block w-100" src="/media/m/carr_1.jpg" alt="First slide"></a>
+                </div>
+
+              </div>
+
+
+
+            </div>
+            <div class="carousel-item">
+
+                <div class="row">
+                <div class="col-lg-3 descCar">
+                    <div class="container text-center contCar">
+                      <h3 class="titCar">¡Organízalos tú mismo!</h3>
+                      <p class="text-justify textCar">Organizar eventos en Freeket es muy sencillo. Regístrate como organizador, si no lo estás, y comienza a organizar tus eventos personalizados.</p>
+                        <a href="/organizador/"><button class="btn btn-outline-light btnOrg btn-lg" id="btnCrearEvento">Organiza</button></a>
+                    </div>
+                </div>
+                <div class="col-lg-9">
+                   <a href="/organizador/"><img class="d-block w-100" src="/media/m/carr_2.jpg" alt="Second slide"></a>
+                </div>
+            </div>
+          </div>
+          <a class="carousel-control-prev" href="#carouselInicio" role="button" data-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
+          </a>
+          <a class="carousel-control-next" href="#carouselInicio" role="button" data-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
+          </a>
+        </div>
+
+    </div>
+
+        <div class = "container contEventosIni">
+            <h2 class="titCar">Estos eventos pueden interesarte</h2>
+     <div class="row">
+
+        {% for evento in eventos %}
+        <div class="card col-md-4 py-3 " style="width: 100%">
+            <img class="card-img-top" src="{{ evento.img.url }}" alt="Card image cap">
+            <div class="card-body d-flex flex-column">
+              <h5 class="card-title">{{ evento.titulo }}</h5>
+              <p class="card-text">{{ evento.fecha }}, {{ evento.hora }}</p>
+              <a href="/evento/{{ evento.url_id }}" class="btn btn-outline-light btnOrg mt-auto stretched-link" >Página del evento</a>
+            </div>
+          </div>
+
+        {% endfor %}
+
+        </div>
+    </div>
 {% endblock %}
 
 
+{% load static %}
+<script src="{% static 'freeketapp/html5-qrcode.min.js' %}"></script>
 
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 

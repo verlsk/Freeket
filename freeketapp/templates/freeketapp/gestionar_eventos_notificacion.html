@@ -26,9 +26,9 @@
         </button>
     </div>
     {% endif %}
-    <form action="/gestionar-eventos/{{ id_evento }}/notificacion/" method="post">
+    <form autocomplete="off" action="/gestionar-eventos/{{ id_evento }}/notificacion/" method="post">
         {% csrf_token %}
-
+        <input autocomplete="false" name="hidden" type="text" style="display:none;">
         <div class="form-group">
             <label for="notaInformativa"><strong>Puedes dejar una nota informativa que se enviará automáticamente a los asistentes al evento</strong></label>
             <textarea class="form-control" id="notaInformativa" name = "notaInformativa" rows="4"></textarea>

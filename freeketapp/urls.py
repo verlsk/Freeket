@@ -28,4 +28,7 @@ urlpatterns = [
     path('perfil-organizador/', views.perfil_organizador, name='perfil_organizador'),
     path('perfil-asistente/', views.perfil_asistente, name='perfil_asistente'),
     path('organizador/', views.organizador, name='organizador'),
+    path('catalogo/', views.resultados, name='resultados'),
+    path('gestionar-eventos/<str:id_evento>/reader/', views.reader, name='reader'),
+    path('reader/', views.reader_ajax, name='reader_ajax'),
 ]

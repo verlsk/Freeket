@@ -3,27 +3,10 @@
 {% block contenido %}
 
 
-    <div id ="jumboBusqueda">
+<div id ="jumboBusqueda">
         <div class="container contBus">
 
-            <div class="form-group">
-                <form action={% url 'eventos' %} method="post">
-                {% csrf_token %}
-                <label for="ordenador">Ordenar por:</label>
-                <select class="form-control" id="ordenador" name="ordenado" onchange="this.form.submit()">
-                    {% if mode == 'pop' %}
-                    <option class="active" value="1">Popularidad</option>
-                    <option value="0">Novedades</option>
-                    {% else %}
-                    <option class="active" value="0">Novedades</option>
-                    <option value="1">Popularidad</option>
-
-
-                    {% endif %}
-                </select>
-
-                </form>
-            </div>
+            <h1>Tus resultados:</h1>
 
             {% for eventos in eventos_total %}
             <div class="row">
@@ -44,6 +27,5 @@
 
         </div>
     </div>
-
 
 {% endblock %}

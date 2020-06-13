@@ -3,16 +3,39 @@
 
 {% block pagina %}
 
+<div class="col-md-10 contStats">
+<div class="container contCrear text-center">
 {% if send == 'y' %}
-<h1>Aún no has confirmado tu email!</h1>
+    <div class="alert alert-info" role="alert">
+             {{ texto }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                 Aún no has confirmado tu email
+            </div>
+{% else %}
+
+ <div class="alert alert-info" role="alert">
+             {{ texto }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                {% if texto is None or texto == '' %}
+                 Ya has confirmado tu email
+                {% endif %}
+            </div>
+
+{% endif %}
+
+{% if send == 'y' %}
+
 <form action={% url 'confirmar_email' %} method="post">
 {% csrf_token %}
 
-<button class="btn btn-primary float-right" type="submit">Enviar email de confirmación</button>
+<button class="btn btn-outline-light btn-lg btnOrg" id="btnCrearEvento" type="submit">Enviar email de confirmación</button>
 </form>
-{% else %}
-
-<h1>{{ texto }}</h1>
 
 {% endif %}
+</div>
+</div>
 {% endblock %}

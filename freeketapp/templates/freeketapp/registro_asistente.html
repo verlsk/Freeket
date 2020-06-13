@@ -3,10 +3,20 @@
 
 {% block pagina %}
 
-<h1>Para registrarte como asistente, pulsa el botón de abajo</h1>
+<div class="col-md-10 contStats align-self-center">
+<div class="container contCrear text-center">
     <form action={% url 'registro_asistente' %} method="post">
 {% csrf_token %}
 <input type="hidden" name="next" value="{{ request.GET.next }}">
-            <button class="btn btn-primary float-right" type="submit">Registrar</button>
+
+ <div class="form-group">
+            <label><strong>Para registrarte como asistente, pulsa el botón de abajo: *</strong></label>
+                        <input class="form-control" name="orgDireccion"
+                               type="text" value="{{ orgDireccion }}">
+        </div>
+            <button class="btn btn-outline-light btnOrg" id="btnCrearEvento" type="submit">Registrar</button>
     </form>
+
+</div>
+</div>
 {% endblock %}

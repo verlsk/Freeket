@@ -2,11 +2,12 @@ from datetime import datetime
 from datetime import timedelta
 from io import BytesIO
 import time
+import pathlib
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail, EmailMessage
 from django.shortcuts import render, redirect
-
-from django.http import HttpResponse, Http404, HttpResponseForbidden
+from django.core import serializers
+from django.http import HttpResponse, Http404, HttpResponseForbidden, JsonResponse
 from django.urls import NoReverseMatch
 
 from freeketapp.models import *
@@ -22,9 +23,14 @@ from reportlab.graphics import renderPDF
 from django.db.models import Count, Q
 import json
 import threading
-from django.template.loader import render_to_string
-from django.http import JsonResponse
+from time import time, localtime, strftime
 import os
+import cv2
+import numpy as np
+
+
+# import pyzbar.pyzbar as pyzbar
+
 
 def index(request):
     context = {}
@@ -47,6 +53,10 @@ def index(request):
 
     else:
         context['islogged'] = 'n'
+
+    eventos = Evento.objects.order_by('-visitas')
+    eventos = eventos.filter(fecha__gte=strftime("%Y-%m-%d", localtime(time())), numero_entradas_actual__gte=1)[:3]
+    context['eventos'] = eventos
     return render(request, "freeketapp/base.html", context)
 
 
@@ -73,7 +83,7 @@ def validate_date(date_text):
 
 def isTimeFormat(input):
     try:
-        time.strptime(input, '%H:%M')
+        datetime.strptime(input, '%H:%M')
         if len(input.split(":")[0]) > 2 or len(input.split(":")[1]) != 2:
             return False
         else:
@@ -96,95 +106,98 @@ def crear_evento(request):
             context['assist'] = True
     errores = []
     if request.method == 'POST':
+        # try:
+        org = Organizador.objects.filter(id=request.user.id)
+        if org.count() == 0:
+            return redirect('registro_organizador')
+        else:
+            if request.session['profile'] == 'org':
+                org = org[0]
+        titulo = request.POST.get('tituloEvento', '')
+        context['titulo'] = titulo
+
+        img = ''
+
         try:
-            org = Organizador.objects.filter(id=request.user.id)
-            if org.count() == 0:
-                return redirect('registro_organizador')
+            img = request.FILES['imgEvento']
+        except:
+            img = 'm/default.jpg'
+        descripcion = request.POST.get('descripcion', '')
+        if descripcion == '':
+            errores.append("Escribe una descripción acerca de tu evento")
+        elif len(descripcion) > 20000:
+            errores.append("Tu descripción es demasiado larga")
+        # formatear la fecha para que la bbdd la pueda almacenar
+        fecha = request.POST.get('fechaEvento', '')
+        fecha = validate_date(fecha)
+        if not fecha:
+            errores.append("Formato de fecha incorrecto")
+
+        hora = request.POST.get('horaEvento', '')
+
+        if not isTimeFormat(hora):
+            errores.append("Formato de hora incorrecto")
+
+        nentradas = request.POST.get('nEntradas', '')
+        nmaxentradas = request.POST.get('nMaxEntradas', '')
+        ciudad = request.POST.get('ciudad', '')
+        cpostal = request.POST.get('cpostal', '')
+        direccion = request.POST.get('direccion', '')
+        url_aux = titulo.replace(" ", "-")
+        url_id = ""
+        # eliminar caracteres especiales de la url
+        for character in url_aux:
+            if character.isalnum() or character == "-":
+                url_id += character
+        url_id = url_id.lower()
+        # eliminar acentos de la url
+        url_id = str(unicodedata.normalize('NFD', url_id)
+                     .encode('ascii', 'ignore')
+                     .decode("utf-8"))
+        # consultar si ya existe un evento con esa url
+        e_number = Evento.objects.filter(url_id=url_id).count()
+        # si existe, se añade una distinción a la url
+        if e_number >= 1:
+            url_id = url_id + "_" + str(e_number)
+        context['url_id'] = url_id
+
+        if titulo == '' or nentradas == '' or ciudad == '' or direccion == '' or cpostal == '' or not RepresentsInt(
+                nentradas) or int(nmaxentradas) < 0 or int(nmaxentradas) > 10 or int(nentradas) < 0:
+            errores.append("Campos obligatorios vacíos o erróneos")
+
+        if len(errores) == 0:
+            context['publicado'] = True
+            context['errores'] = None
+
+            # generamos clave para desencriptar entradas de evento
+            key = Fernet.generate_key().decode()
+            # uuid para evento
+            id_evento = uuid.uuid4()
+            # usuario que organiza el evento
+            e = Evento(id=id_evento, img=img, descripcion=descripcion, titulo=titulo, url_id=url_id, fecha=fecha,
+                       hora=hora,
+                       numero_entradas_inicial=nentradas,
+                       max_entradas_user=nmaxentradas, numero_entradas_actual=nentradas,
+                       organizador=org, key=key, ciudad=ciudad, direccion=direccion, cpostal=cpostal)
+
+            if e.img.width < e.img.height:
+                errores.append("La imagen debe ser horizontal")
+                context['publicado'] = None
+                path = os.getcwd() + '/media/' + e.img.name
+                os.remove(path)
+                e.delete()
             else:
-                if request.session['profile'] == 'org':
-                    org = org[0]
-            titulo = request.POST.get('tituloEvento', '')
-            context['titulo'] = titulo
-
-            img = ''
-
-            try:
-                img = request.FILES['imgEvento']
-            except:
-                img = 'm/default.jpg'
-            descripcion = request.POST.get('descripcion', '')
-            if descripcion == '':
-                errores.append("Escribe una descripción acerca de tu evento")
-            elif len(descripcion) > 20000:
-                errores.append("Tu descripción es demasiado larga")
-            # formatear la fecha para que la bbdd la pueda almacenar
-            fecha = request.POST.get('fechaEvento', '')
-            fecha = validate_date(fecha)
-            if not fecha:
-                errores.append("Formato de fecha incorrecto")
-
-            hora = request.POST.get('horaEvento', '')
-
-            if not isTimeFormat(hora):
-                errores.append("Formato de hora incorrecto")
-
-
-            nentradas = request.POST.get('nEntradas', '')
-            nmaxentradas = request.POST.get('nMaxEntradas', '')
-            ciudad = request.POST.get('ciudad', '')
-            cpostal = request.POST.get('cpostal', '')
-            direccion = request.POST.get('direccion', '')
-            url_aux = titulo.replace(" ", "-")
-            url_id = ""
-            # eliminar caracteres especiales de la url
-            for character in url_aux:
-                if character.isalnum() or character == "-":
-                    url_id += character
-            url_id = url_id.lower()
-            # eliminar acentos de la url
-            url_id = str(unicodedata.normalize('NFD', url_id)
-                         .encode('ascii', 'ignore')
-                         .decode("utf-8"))
-            # consultar si ya existe un evento con esa url
-            e_number = Evento.objects.filter(url_id=url_id).count()
-            # si existe, se añade una distinción a la url
-            if e_number >= 1:
-                url_id = url_id + "_" + str(e_number)
-            context['url_id'] = url_id
-
-            if titulo == '' or nentradas == '' or ciudad == '' or direccion == '' or cpostal == '' or not RepresentsInt(
-                    nentradas) or int(nmaxentradas) < 0 or int(nmaxentradas) > 10 or int(nentradas) < 0:
-                errores.append("Campos obligatorios vacíos o erróneos")
-
-            if len(errores) == 0:
-                context['publicado'] = True
+                e.save()
+                errores = None
                 context['errores'] = None
 
-                # generamos clave para desencriptar entradas de evento
-                key = Fernet.generate_key().decode()
-                # uuid para evento
-                id_evento = uuid.uuid4()
-                # usuario que organiza el evento
-                e = Evento(id=id_evento, img=img, descripcion=descripcion, titulo=titulo, url_id=url_id, fecha=fecha,
-                           hora=hora,
-                           numero_entradas_inicial=nentradas,
-                           max_entradas_user=nmaxentradas, numero_entradas_actual=nentradas,
-                           organizador=org, key=key, ciudad=ciudad, direccion=direccion, cpostal=cpostal)
-                e.save()
-                if e.img.width < e.img.height:
-                    errores.append("La imagen debe ser horizontal")
-                    context['publicado'] = None
-                    path = os.getcwd() + '/media/' + e.img.name
-                    os.remove(path)
-                    e.delete()
-                else:
-                    errores = None
-                    context['errores'] = None
+        context['errores'] = errores
 
-            context['errores'] = errores
+        '''
         except:
-            errores.append("Campos obligatorios vacíos o erróneos")
+            errores.append("Campos obligatorios vacíos o erróneos!")
             context['errores'] = errores
+        '''
 
     return render(request, "freeketapp/plantilla_eventos.html", context)
 
@@ -298,7 +311,9 @@ def get_entrada(entrada, p):
     # encriptando texto
     key = entrada.evento.key.encode()
     f_key = Fernet(key)
+
     txt_qr = f_key.encrypt(str(entrada.id).encode()).decode()
+
     qrw = QrCodeWidget(txt_qr)
     # Create the HttpResponse object with the appropriate PDF headers.
 
@@ -312,8 +327,10 @@ def get_entrada(entrada, p):
 
     path = os.getcwd()
 
-    path += entrada.evento.img.url
+    # path += entrada.evento.img.url
 
+    img_url = entrada.evento.img.url
+    path += img_url
     img_w = entrada.evento.img.width
     img_h = entrada.evento.img.height
 
@@ -337,8 +354,8 @@ def get_entrada(entrada, p):
                 break
             cut += 1
 
-        titulo_1 = entrada.evento.titulo[:26+cut]
-        titulo_2 = entrada.evento.titulo[26+cut+1:]
+        titulo_1 = entrada.evento.titulo[:26 + cut]
+        titulo_2 = entrada.evento.titulo[26 + cut + 1:]
     else:
         titulo_1 = entrada.evento.titulo
     text = p.beginText(x_margin, 770)
@@ -423,7 +440,6 @@ def mostrar_entrada(request, id_entrada):
 
 @login_required(login_url='/login')
 def misentradas(request):
-
     ids = []
     evs = []
     fechas = []
@@ -504,6 +520,7 @@ def registro(request):
         else:
 
             context['showform'] = False
+            context['errores'] = None
             context[
                 'texto'] = "Te has registrado correctamente. Revisa tu bandeja de correo electrónico, ya que te hemos mandado un email de confirmación. "
             user = User.objects.create_user(username, email, password)
@@ -521,7 +538,8 @@ def registro(request):
             confirmation_code = ConfirmationCode(id=uuid.uuid4(), usuario=user)
             confirmation_code.save()
             send_confirmation_email(user)
-
+    else:
+        context['errores'] = None
     return render(request, "freeketapp/registro.html", context)
 
 
@@ -530,7 +548,7 @@ def send_confirmation_email(user):
     title = "Freeket: Confirmación de email"
     content = "Bienvenido a Freeket, " + user.username + "!\n\n"
     content += "Para confimar tu email y poder adquirir entradas, accede a la siguiente página: "
-    content += "127.0.0.1:8000/confirmation/" + str(confirmation_code.id) + "/" + user.username
+    content += "http://freeket.es/confirmation/" + str(confirmation_code.id) + "/" + user.username
     send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
 
 
@@ -615,7 +633,8 @@ def confirmation(request, id_confirmacion_url, user):
 
 @login_required(login_url='/login')
 def reset_password(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'],'r_active':"btnSideActive"}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'],
+               'r_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -649,12 +668,16 @@ def reset_password(request):
                 user.set_password(new_password)
                 user.save()
                 user = authenticate(request, username=request.user, password=new_password)
+                prof = context['profile']
                 login(request, user)
+                request.session['profile'] = prof
                 context['texto'] = "La contraseña se ha actualizado correctamente."
+                context['errores'] = None
         else:
             errores.append("La contraseña actual proporcionada es incorrecta")
             context['errores'] = errores
-
+    else:
+        context['errores'] = None
     return render(request, "freeketapp/reset_password.html", context)
 
 
@@ -689,7 +712,8 @@ def forgot_password_form(request):
 
 @login_required(login_url='/login')
 def mi_perfil(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'm_active':"btnSideActive"}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'],
+               'm_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -722,22 +746,26 @@ def mi_perfil(request):
                 errores.append("Este email pertenece a otro usuario")
             elif duplicated_email.count() > 1:
                 errores.append("Este email pertenece a otro usuario")
-            if email == '':
+            elif email == '':
                 errores.append("El campo \"Email\" no puede estar vacío")
             else:
                 if request.user.email != email.lower():
                     request.user.email = email.lower()
-                    request.user.save()
+
                     context['texto'] = "Datos actualizados correctamente. Te hemos mandado un email de confirmación"
+                    errores = None
                     # mandar correo de confirmacion
                     confirmation_code = ConfirmationCode(id=uuid.uuid4(), usuario=request.user)
                     confirmation_code.save()
                     send_confirmation_email(request.user)
                 else:
                     context['texto'] = "Datos actualizados correctamente."
+                    errores = None
+                request.user.save()
         else:
             errores.append("Contraseña incorrecta")
-
+    else:
+        errores = None
     context['errores'] = errores
     context['nombre'] = request.user.first_name
     context['apellido'] = request.user.last_name
@@ -748,7 +776,8 @@ def mi_perfil(request):
 
 @login_required(login_url='/login')
 def confirmar_email(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'c_active':"btnSideActive"}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'],
+               'c_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -778,8 +807,7 @@ def confirmar_email(request):
 def cerrar_sesion(request):
     context = {}
     logout(request)
-    redirect('index')
-    return render(request, "freeketapp/base.html", context)
+    return redirect('index')
 
 
 @login_required(login_url='/login')
@@ -816,7 +844,8 @@ def gestionar_eventos(request):
 
 @login_required(login_url='/login')
 def gestionar_eventos_evento(request, id_evento):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'e_active': "btnSideActive"}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'],
+               'e_active': "btnSideActive"}
 
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
@@ -1087,8 +1116,11 @@ def enviar_email_cancelar(evento):
         content += ", al que tenías previsto asistir, lo ha cancelado. Sentimos lo ocurrido."
 
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
-    path = os.getcwd() + '/media/' + evento.img.name
-    os.remove(path)
+
+    path = os.getcwd() + evento.img.url
+
+    if path.split("/")[-1] != "default.jpg":
+        os.remove(path)
     evento.delete()
 
 
@@ -1168,23 +1200,42 @@ def eventos(request):
                 context['assist'] = False
             else:
                 context['assist'] = True
-    titulo = request.GET.get("titulo")
 
     evs = Evento.objects.all()
 
+    titulo = request.GET.get("titulo")
+
     if titulo is not None:
-        evs = Evento.objects.filter(titulo__icontains=titulo)
-    context['eventos'] = evs
+        evs = Evento.objects.filter(titulo__icontains=titulo,
+                                    fecha__gte=strftime("%Y-%m-%d", localtime(time()))).order_by('-visitas')[:7]
+    context['evs'] = evs
 
     if request.is_ajax():
-        html = render_to_string(
-            template_name="freeketapp/eventos_parcial.html",
-            context=context
-        )
+        for i in range(len(evs)):
+            evs[i].key = ""
+            evs[i].organizador.id = ""
+            evs[i].visitas = ""
+            evs[i].numero_entradas_inicial = ""
+            evs[i].numero_entradas_actual = ""
+            evs[i].id = ""
 
-        data_dict = {"html_from_view": html}
+        data = serializers.serialize('json', evs)
 
-        return JsonResponse(data=data_dict, safe=False)
+        return HttpResponse(data, content_type="application/json")
+    else:
+        eventos = Evento.objects.order_by('-visitas')
+        eventos = eventos.filter(fecha__gte=strftime("%Y-%m-%d", localtime(time())))
+        context['mode'] = 'pop'
+        if request.method == 'POST':
+            ordenado = request.POST.get('ordenado')
+            if ordenado == '0':
+                eventos = Evento.objects.order_by('-fecha_creacion')
+                eventos = eventos.filter(fecha__gte=strftime("%Y-%m-%d", localtime(time())))
+                context['mode'] = 'fecha'
+        n = 3
+        eventos_total = [eventos[i * n:(i + 1) * n] for i in range((len(eventos) + n - 1) // n)]
+        context['eventos_total'] = eventos_total
+
     return render(request, "freeketapp/eventos.html", context)
 
 
@@ -1221,7 +1272,8 @@ def perfil_asistente(request):
 
 @login_required(login_url='/login')
 def registro_asistente(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'a_active':"btnSideActive"}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'],
+               'a_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
 
@@ -1245,7 +1297,8 @@ def registro_asistente(request):
 
 @login_required(login_url='/login')
 def registro_organizador(request):
-    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'], 'o_active':"btnSideActive"}
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile'],
+               'o_active': "btnSideActive"}
     org = Organizador.objects.filter(id=request.user.id)
     if org.count() == 0:
         context['org'] = False
@@ -1265,6 +1318,7 @@ def registro_organizador(request):
                               direccion=request.POST.get('orgDireccion'), exclusive_org=False)
             org.save()
             request.session['profile'] = 'org'
+            context['errores'] = None
         else:
             context['errores'] = "La dirección no puede estar vacía"
             return render(request, "freeketapp/registro_organizador.html", context)
@@ -1287,3 +1341,86 @@ def organizador(request):
             context['assist'] = True
 
     return render(request, "freeketapp/organizador.html", context)
+
+
+def resultados(request):
+    context = {}
+    if request.user.is_authenticated:
+        context['name'] = request.user.username
+        context['islogged'] = 'y'
+        context['profile'] = request.session['profile']
+        org = Organizador.objects.filter(id=request.user.id)
+        if org.count() == 0:
+            context['org'] = False
+        else:
+            context['org'] = True
+            if org[0].exclusive_org:
+                context['assist'] = False
+            else:
+                context['assist'] = True
+    else:
+        context['islogged'] = 'n'
+
+    if request.method == 'POST':
+        nombre = request.POST.get('titulo')
+        evs = Evento.objects.filter(titulo__icontains=nombre)
+        evs = evs.filter(fecha__gte=strftime("%Y-%m-%d", localtime(time())))
+        n = 3
+        evs_total = [evs[i * n:(i + 1) * n] for i in range((len(evs) + n - 1) // n)]
+        context['eventos_total'] = evs_total
+
+    return render(request, "freeketapp/resultados.html", context)
+
+
+@login_required(login_url='/login')
+def reader(request, id_evento):
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+
+    try:
+        ev = Evento.objects.get(url_id=id_evento)
+        context['url'] = ev.url_id
+    except:
+        raise Http404("El evento no existe!")
+
+    return render(request, "freeketapp/reader.html", context)
+
+
+def reader_ajax(request):
+    if request.is_ajax():
+
+        id_entrada = request.GET.get("id")
+        url_id_evento = request.GET.get("url")
+
+        evento = Evento.objects.get(url_id=url_id_evento)
+
+        key = evento.key.encode()
+        f = Fernet(key)
+
+        res = {}
+
+        try:
+            print (id_entrada)
+            txt_decoded = f.decrypt(id_entrada.encode()).decode()
+            print (txt_decoded)
+            entradas = Entrada.objects.filter(id=txt_decoded, evento=evento)
+
+            if entradas.count() > 0:
+                if entradas[0].validada:
+                    res['resp'] = 'ya validada'
+                else:
+                    entrada = entradas[0]
+                    entrada.validada = True
+                    entrada.save()
+                    res['resp'] = True
+            else:
+                res['resp'] = False
+
+
+        # no es entrada
+        except:
+            res['resp'] = False
+
+
+        return JsonResponse(res)
+    else:
+        raise Http404("El evento no existe")

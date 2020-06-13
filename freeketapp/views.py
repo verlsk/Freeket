@@ -1375,9 +1375,20 @@ def resultados(request):
 @login_required(login_url='/login')
 def reader(request, id_evento):
     context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
-
+    org = Organizador.objects.filter(id=request.user.id)
+    if org.count() == 0:
+        context['org'] = False
+        return redirect('index')
+    else:
+        context['org'] = True
+        if org[0].exclusive_org:
+            context['assist'] = False
+        else:
+            context['assist'] = True
     try:
         ev = Evento.objects.get(url_id=id_evento)
+        if ev.organizador.id != request.user.id:
+            raise Http404("El evento no existe")
         context['url'] = ev.url_id
     except:
         raise Http404("El evento no existe!")
@@ -1392,6 +1403,9 @@ def reader_ajax(request):
         url_id_evento = request.GET.get("url")
 
         evento = Evento.objects.get(url_id=url_id_evento)
+
+        if evento.organizador.id != request.user.id:
+            raise Http404("El evento no existe")
 
         key = evento.key.encode()
         f = Fernet(key)

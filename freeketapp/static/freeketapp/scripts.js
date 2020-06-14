@@ -94,7 +94,6 @@ $(document).ready(function () {
     });
     let s_function = false
     var url_id = $('#urlId').val()
-
     const endpoint_read = '/reader/'
     delay_by_in_ms_read = 100
      let ajax_call_read = function (endpoint_read, request_parameters) {
@@ -106,7 +105,7 @@ $(document).ready(function () {
 
                     else {
                         if (response['resp'] == 'ya validada')
-                            alert("La entrada ya se ha usado")
+                            alert("La entrada ya se ha usadoo")
                     }
 
                 })
@@ -130,9 +129,55 @@ $(document).ready(function () {
 
     }
     var w = $('.contReader').width() / 2;
+    if (url_id != null) {
     var html5QrcodeScanner = new Html5QrcodeScanner(
 
     "qr-reader", { fps: 10, qrbox: w });
     html5QrcodeScanner.render(onScanSuccess);
+    }
+
+    let s_function_salida = false
+    var url_id_salida = $('#urlIdSalida').val()
+    const endpoint_read_salida = '/reader-salida/'
+    delay_by_in_ms_read_salida = 100
+     let ajax_call_read_salida = function (endpoint_read_salida, request_parameters_salida) {
+        $.getJSON(endpoint_read_salida, request_parameters_salida)
+            .done(response => {
+
+                    if (response['resp'] == true)
+                        alert("Correcto! Puede salir");
+
+                    else {
+                        if (response['resp'] == 'n')
+                            alert("No puede salir. La entrada no se ha utilizado para entrar")
+                    }
+
+                })
+            }
+    function onScanSuccessSalida(qrCodeMessage) {
+
+          // if scheduled_function is NOT false, cancel the execution of the function
+
+        const request_parameters_salida = {
+                id: qrCodeMessage,
+                url: url_id_salida // value of user_input: the HTML element with ID user-input
+
+        }
+
+        if (s_function_salida) {
+            clearTimeout(s_function_salida)
+        }
+
+        // setTimeout returns the ID of the function to be executed
+        s_function_salida = setTimeout(ajax_call_read_salida, delay_by_in_ms_read, endpoint_read_salida, request_parameters_salida)
+
+    }
+    if (url_id_salida != null ){
+    var wSalida = $('.contReader').width() / 2;
+    var html5QrcodeScannerSalida = new Html5QrcodeScanner(
+
+    "qr-reader", { fps: 10, qrbox: wSalida });
+    html5QrcodeScannerSalida.render(onScanSuccessSalida);
+    }
 
 });

@@ -30,5 +30,7 @@ urlpatterns = [
     path('organizador/', views.organizador, name='organizador'),
     path('catalogo/', views.resultados, name='resultados'),
     path('gestionar-eventos/<str:id_evento>/reader/', views.reader, name='reader'),
+    path('gestionar-eventos/<str:id_evento>/reader-salida/', views.reader_salida, name='reader_salida'),
     path('reader/', views.reader_ajax, name='reader_ajax'),
+    path('reader-salida/', views.reader_ajax_salida, name='reader_ajax_salida'),
 ]

@@ -1,0 +1,13 @@
+{% extends "freeketapp/base.html" %}
+
+{% block contenido %}
+
+<div class="container">
+    <div class="jumbotron">
+        <h1 class="display-3">Recurso no encontrado</h1>
+        <p class="lead">Lo sentimos, la página a la que intentas acceder no existe!</p>
+        <hr class="my-4">
+        <a class="btn btn-outline-light btn-lg btnOrg my-3" href="{% url 'index' %}" role="button">Vuelve a la página principal</a>
+    </div>
+</div>
+{% endblock %}

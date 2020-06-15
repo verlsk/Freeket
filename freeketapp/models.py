@@ -46,4 +46,10 @@ class ConfirmationCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     objects = models.Manager()
+
+
+class ListaEspera(models.Model):
+    usuario = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE)
+    objects = models.Manager()
 # Create your models here.

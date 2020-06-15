@@ -1,6 +1,14 @@
 {% extends "freeketapp/base.html" %}
 
 {% block contenido %}
+{% if devolver %}
+ <div class="alert alert-success" role="alert">
+ Devolución de entrada completada. Gracias por tu devolución, ya que permitirá a otra persona asistir.
+<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% endif %}
 <div class="container contGestEvs">
 
     {% for i, e, f in elementos %}
@@ -9,22 +17,50 @@
             <div class="media position-relative mediaGestEvs">
               <img src="{{ e.img.url }}" class="mr-3" alt="Imagen del evento" width="100px">
               <div class="media-body">
-                <h5 class="mt-0">{{ e.titulo }} </h5>
+                 <a href="/evento/{{ e.url_id }}"><h5 class="mt-0">{{ e.titulo }} </h5></a>
 
                   <div class ="row">
                       <div class="col-md-3">
                   <small>(Adquirida el {{ f }})</small>
                   </div>
                   <div class="col-md-9">
-                  <a href="{{ i.id }}"><button class="btn btn-outline-light btnGest ml-1 float-right">Descargar</button></a>
-                  <a href="/evento/{{ e.url_id }}"><button class="btn btn-outline-light btnGest ml-1 float-right">Pagina del evento</button></a>
+                    <button class="btn btn-outline-light btnGest ml-1 float-right"  data-target="#{{ i.id }}" data-toggle="modal" type="button">
+                        Devolver entrada
+                    </button>
+                      <a href="/mis-entradas/{{ i.id }}"><button class="btn btn-outline-light btnGest ml-1 float-right">Descargar</button></a>
                       </div>
+
                   </div>
               </div>
             </div>
         </div>
     </div>
+
+    <div aria-hidden="true" aria-labelledby="exampleModalLabel" class="modal fade" id="{{ i.id }}" role="dialog"
+             tabindex="-1">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">¿Estás seguro de que quieres devolver tu entrada?</h5>
+                        <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        No será válida para acceder al evento
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-outline-light btnOrg" data-dismiss="modal" type="button">Cerrar</button>
+                        <form autocomplete="off" action="/mis-entradas/devolver/{{ i.id }}/" method="post">
+                          {% csrf_token %}
+                          <button class="btn btn-outline-light btnOrg ml-1 float-right">Devolver entrada</button>
+                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% endfor %}
+
 
 </div>
 {% endblock %}

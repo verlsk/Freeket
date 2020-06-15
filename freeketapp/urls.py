@@ -12,6 +12,7 @@ urlpatterns = [
     path('crear-evento/', views.crear_evento, name="crear_evento"),
     path('evento/<str:id_evento>/', views.pagina_evento, name = 'pagina_evento'),
     path('mis-entradas/<str:id_entrada>/', views.mostrar_entrada, name='mostrar_entrada'),
+    path('mis-entradas/devolver/<str:id_entrada>/', views.devolver, name='devolver'),
     path('mis-entradas/', views.misentradas, name='misentradas'),
     path('mi-perfil/', views.mi_perfil, name='mi_perfil'),
     path('mi-perfil/confirmar-email', views.confirmar_email, name='confirmar_email'),
@@ -21,6 +22,7 @@ urlpatterns = [
     path('gestionar-eventos/<str:id_evento>/', views.gestionar_eventos_evento, name='gestionar_eventos_evento'),
     path('gestionar-eventos/<str:id_evento>/modificar/', views.gestionar_eventos_modificar, name='gestionar_eventos_modificar'),
     path('gestionar-eventos/<str:id_evento>/notificacion/', views.gestionar_eventos_notificacion, name='gestionar_eventos_notificacion'),
+    path('gestionar-eventos/<str:id_evento>/invitaciones/', views.gestionar_eventos_invitaciones,name='gestionar_eventos_invitaciones'),
     path('gestionar-eventos/<str:id_evento>/cancelar-evento/', views.gestionar_eventos_cancelar, name='gestionar_eventos_cancelar'),
     path('gestionar-eventos/<str:id_evento>/asistentes/', views.gestionar_eventos_asistentes,
          name='gestionar_eventos_asistentes'),
@@ -33,4 +35,6 @@ urlpatterns = [
     path('gestionar-eventos/<str:id_evento>/reader-salida/', views.reader_salida, name='reader_salida'),
     path('reader/', views.reader_ajax, name='reader_ajax'),
     path('reader-salida/', views.reader_ajax_salida, name='reader_ajax_salida'),
+    path('lista-espera', views.lista_espera, name='listaespera'),
+    path('quitar-lista', views.quitar_lista_espera, name='quitarlista'),
 ]

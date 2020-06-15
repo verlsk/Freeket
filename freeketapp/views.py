@@ -25,8 +25,6 @@ import json
 import threading
 from time import time, localtime, strftime
 import os
-import cv2
-import numpy as np
 
 
 # import pyzbar.pyzbar as pyzbar
@@ -55,7 +53,9 @@ def index(request):
         context['islogged'] = 'n'
 
     eventos = Evento.objects.order_by('-visitas')
+
     eventos = eventos.filter(fecha__gte=strftime("%Y-%m-%d", localtime(time())), numero_entradas_actual__gte=1)[:3]
+
     context['eventos'] = eventos
     return render(request, "freeketapp/base.html", context)
 
@@ -287,6 +287,14 @@ def pagina_evento(request, id_evento):
                 context['mostrarcomprar'] = 'n'
             else:
                 context['mostrarcomprar'] = 'y'
+
+            if evento.numero_entradas_actual == 0:
+                context['mostrarcomprar'] = 'n'
+                context['listaespera'] = 'y'
+                l_espera = ListaEspera.objects.filter(evento=evento, usuario=request.user)
+
+                if l_espera.count() > 0:
+                    context['listaespera'] = 'disabled'
 
             esp_date_format = eng_date_format.strftime("%A %d de %B de %Y")
             context['fecha'] = esp_date_format
@@ -1066,6 +1074,35 @@ def enviar_email_informativo(evento, text):
         content += "\n\n    \"" + text + "\""
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
 
+def enviar_email_invitaciones(evento, emails):
+
+    user = User.objects.get(username='invitado')
+    for i in emails:
+        if i != '' and i is not None:
+            id_entrada = uuid.uuid4()
+            entrada = Entrada(usuario=user, evento=evento, id=id_entrada)
+            entrada.save()
+            if evento.numero_entradas_actual > 0:
+                evento.numero_entradas_actual -= 1
+                evento.save()
+
+            # GENERAMOS PDF CON ENTRD
+            buffer = BytesIO()
+            p = canvas.Canvas(buffer)
+            p, d = get_entrada(entrada, p)
+            renderPDF.draw(d, p, 400, 650)
+            p.showPage()
+            p.save()
+            pdf = buffer.getvalue()
+            buffer.close()
+            message = "Hola!\n\t El organizador del evento: \""+evento.titulo+"\" te ha enviado una invitación.\n"
+            message += "\tLa encontrarás junto a este email.\n\tEsperamos que disfrutes del evento."
+            message += "\tPuedes encontrar información adicional acerca de este evento en: freeket.es/evento/"+evento.url_id
+            email = EmailMessage(
+                'Has recibido una invitación para un evento Freeket!', message, 'freeketmail@gmail.com',
+                [i])
+            email.attach('entrada.pdf', pdf, 'application/pdf')
+            email.send()
 
 @login_required(login_url='/login')
 def gestionar_eventos_notificacion(request, id_evento):
@@ -1103,6 +1140,43 @@ def gestionar_eventos_notificacion(request, id_evento):
         raise Http404("No encontrado")
 
     return render(request, "freeketapp/gestionar_eventos_notificacion.html", context)
+
+@login_required(login_url='/login')
+def gestionar_eventos_invitaciones(request, id_evento):
+    context = {'islogged': 'y', 'name': request.user.username, 'id_evento': id_evento,
+               'profile': request.session['profile'], 'i_active': "btnSideActive"}
+    org = Organizador.objects.filter(id=request.user.id)
+    if org.count() == 0:
+        context['org'] = False
+    else:
+        context['org'] = True
+        if org[0].exclusive_org:
+            context['assist'] = False
+        else:
+            context['assist'] = True
+    errores = []
+    context['enviado'] = False
+    try:
+        evento = Evento.objects.get(url_id=id_evento)
+        # comprobar propietario del evento
+        if evento.organizador.nickname != request.user.username:
+            raise Http404("El evento no existe")
+        if request.method == 'POST':
+            emails = request.POST.get('emailsInvitaciones', '').split(" ")
+            if emails == '' or emails is None:
+                errores.append("No hay ninguna dirección de email válida")
+                context['errores'] = errores
+
+            else:
+                evento = Evento.objects.get(url_id=id_evento)
+                context['enviado'] = True
+                t = threading.Thread(target=enviar_email_invitaciones, args=(evento, emails), kwargs={})
+                t.setDaemon(True)
+                t.start()
+    except TypeError:
+        raise Http404("No encontrado")
+
+    return render(request, "freeketapp/gestionar_eventos_invitaciones.html", context)
 
 
 def enviar_email_cancelar(evento):
@@ -1499,3 +1573,170 @@ def reader_ajax_salida(request):
         return JsonResponse(res)
     else:
         raise Http404("El evento no existe")
+
+def mail_lista_espera(l_espera):
+    for i in l_espera:
+        email_dir = i.usuario.email
+        message = "Hola, " + i.usuario.username +"\nTe escribimos para hacerte saber que hay nuevas entradas disponibles para el evento \""+i.evento.titulo+"\""
+        message += ", para el cual te apuntaste a la lista de espera. No dudes en asistir pero... tienes que ser rápido, ya que el número de entradas es limitado"
+        message += " y puede que no seas la única persona en recibir este email...\n"
+        message += "\nAcceso al evento: freeket.es/evento/"+i.evento.url_id
+        email = EmailMessage(
+            'Nuevas entradas disponibles!', message, 'freeketmail@gmail.com', [email_dir])
+        email.send()
+
+@login_required(login_url='/login')
+def devolver(request, id_entrada):
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    org = Organizador.objects.filter(id=request.user.id)
+    if org.count() == 0:
+        context['org'] = False
+        return redirect('index')
+    else:
+        context['org'] = True
+        if org[0].exclusive_org:
+            context['assist'] = False
+        else:
+            context['assist'] = True
+
+    try:
+        id_entrada = uuid.UUID(id_entrada).hex
+
+        entrada = Entrada.objects.filter(id=id_entrada)
+
+        if entrada.count == 0:
+            raise Http404()
+        else:
+            entrada = entrada[0]
+            if request.user.id != entrada.usuario.id:
+                raise Http404()
+            evento = entrada.evento
+            evento.numero_entradas_actual += 1
+            entrada.delete()
+            evento.save()
+            context['devolver'] = True
+            entradas = Entrada.objects.filter(usuario=request.user)
+            ids = []
+            evs = []
+            fechas = []
+            for i in entradas:
+                ids.append(i)
+                evs.append(i.evento)
+                fechas.append(i.fecha_adquisicion.strftime("%d-%m-%Y"))
+
+            evs.reverse()
+            ids.reverse()
+            fechas.reverse()
+            context['elementos'] = zip(ids, evs, fechas)
+            # LISTA DE ESPERA - COMPROBAR Y AVISAR
+            l_espera = ListaEspera.objects.filter(evento=evento)
+            if l_espera.count() > 0:
+                t = threading.Thread(target=mail_lista_espera, args=(l_espera,), kwargs={})
+                t.setDaemon(True)
+                t.start()
+
+    except:
+        raise Http404()
+
+    return render(request, "freeketapp/misentradas.html", context)
+
+@login_required(login_url='/login')
+def lista_espera(request):
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    org = Organizador.objects.filter(id=request.user.id)
+    if org.count() == 0:
+        context['org'] = False
+        return redirect('index')
+    else:
+        context['org'] = True
+        if org[0].exclusive_org:
+            context['assist'] = False
+        else:
+            context['assist'] = True
+
+    if request.method == 'POST':
+        url_id = request.POST.get('idEventoLista')
+        try:
+
+            evento = Evento.objects.get(url_id=url_id)
+            l_espera = ListaEspera(usuario=request.user, evento=evento)
+            l_espera.save()
+            esp_date_format = evento.fecha.strftime("%A %d de %B de %Y")
+            context['titulo'] = evento.titulo
+            context['img'] = evento.img.url
+            context['fecha'] = esp_date_format
+            context['hora'] = evento.hora
+            context['url_id'] = url_id
+            context['ciudad'] = evento.ciudad
+            context['direccion'] = evento.direccion
+            context['cpostal'] = evento.cpostal
+            context['descripcion'] = evento.descripcion
+            context['listaespera'] = 'anadido'
+            return render(request, "freeketapp/pagina_evento.html", context)
+
+        except:
+            raise Http404()
+    else:
+        return redirect('eventos')
+
+@login_required(login_url='/login')
+def quitar_lista_espera(request):
+    context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
+    org = Organizador.objects.filter(id=request.user.id)
+    if org.count() == 0:
+        context['org'] = False
+        return redirect('index')
+    else:
+        context['org'] = True
+        if org[0].exclusive_org:
+            context['assist'] = False
+        else:
+            context['assist'] = True
+
+    if request.method == 'POST':
+        url_id = request.POST.get('idEventoLista')
+        try:
+
+            evento = Evento.objects.get(url_id=url_id)
+
+            l_espera = ListaEspera.objects.get(usuario=request.user, evento=evento)
+            l_espera.delete()
+
+            esp_date_format = evento.fecha.strftime("%A %d de %B de %Y")
+            context['titulo'] = evento.titulo
+            context['img'] = evento.img.url
+            context['fecha'] = esp_date_format
+            context['hora'] = evento.hora
+            context['url_id'] = url_id
+            context['ciudad'] = evento.ciudad
+            context['direccion'] = evento.direccion
+            context['cpostal'] = evento.cpostal
+            context['descripcion'] = evento.descripcion
+            context['listaespera'] = 'quitado'
+            return render(request, "freeketapp/pagina_evento.html", context)
+
+        except:
+            raise Http404()
+    else:
+        return redirect('eventos')
+
+
+def error_404_view(request, exception):
+    context = {}
+    if request.user.is_authenticated:
+        context['name'] = request.user.username
+        context['islogged'] = 'y'
+        context['profile'] = request.session['profile']
+        org = Organizador.objects.filter(id=request.user.id)
+        if org.count() == 0:
+            context['org'] = False
+        else:
+            context['org'] = True
+            if org[0].exclusive_org:
+                context['assist'] = False
+            else:
+                context['assist'] = True
+    else:
+        context['islogged'] = 'n'
+
+    return render(request, 'freeketapp/404.html', context)

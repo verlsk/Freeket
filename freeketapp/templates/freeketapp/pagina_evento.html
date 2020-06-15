@@ -2,6 +2,30 @@
 {% block title %}{{ titulo }}{% endblock %}
 
 {% block contenido %}
+
+{% if listaespera == 'disabled' %}
+<div class="alert alert-info" role="alert">
+  Estás en lista de espera. Vuelve a pulsar el botón y te eliminaremos de ella
+<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% elif listaespera == 'anadido' %}
+  <div class="alert alert-info" role="alert">
+  Te hemos añadido a la lista de espera. Recibirás un email cuando haya entradas disponibles
+<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+
+{% elif listaespera == 'quitado' %}
+<div class="alert alert-info" role="alert">
+  Te hemos eliminado de la lista de espera
+<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+</div>
+{% endif %}
 {% if profile == 'org' %}
     <div class="alert alert-danger" role="alert">
           Para adquirir entradas, cambia al perfil de asistente
@@ -9,9 +33,9 @@
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
-{% elif mostrarcomprar != 'y' %}
+{% elif mostrarcomprar != 'y' and adquiridas != 'y' %}
     <div class="alert alert-danger" role="alert">
-         Este evento ya se ha pasado. No puedes adquirir entradas
+         No puedes adquirir entradas, no hay entradas disponibles o ya ha finalizado. Si es el primer caso, puedes apuntarte a la lista de espera y te notificaremos cuando haya entradas disponibles.
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
       </button>
@@ -38,6 +62,7 @@
 
     </div>
 {% endif %}
+
 <div class = "container">
     <div class="jumbotron" id="jumboEvento">
 
@@ -79,6 +104,24 @@
                 {% endif %}
             </form>
         {% endif %}
+                {% if listaespera == 'y' or listaespera == 'quitado' %}
+                    {% if islogged == 'y' %}
+                    <form action={% url 'listaespera' %} method = "post">
+                    {% csrf_token %}
+                          <input type="hidden" name="idEventoLista" value="{{ url_id }}">
+                          <button class="btn btn-outline-light btnOrg float-right" type="submit">Añádeme a la lista de espera</button>
+                    </form>
+                    {% endif %}
+
+                {% elif listaespera == 'disabled' or listaespera == 'anadido' %}
+                    {% if islogged == 'y' %}
+                    <form action={% url 'quitarlista' %} method = "post">
+                    {% csrf_token %}
+                          <input type="hidden" name="idEventoLista" value="{{ url_id }}">
+                            <button class="btn btn-outline-light btnOrg float-right" type="submit">Elimíname de la lista de espera</button>
+                    </form>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
 

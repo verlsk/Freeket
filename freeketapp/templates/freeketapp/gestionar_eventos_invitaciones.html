@@ -1,0 +1,43 @@
+{% extends "freeketapp/gestionar_eventos_evento.html" %}
+
+{% block pagina %}
+<div class="col-md-10 contStats align-self-center">
+    <div class="container contCrear text-center">
+
+    {% if errores is not None %}
+    <div class="alert alert-danger" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+    {% for i in errores %}
+        <li>{{ i }}</li>
+
+    {% endfor %}
+        </div>
+    {% endif %}
+
+
+    {% if enviado %}
+    <div class="alert alert-success" role="alert">
+     Invitaciones enviadas correctamente. Los usuarios recibirán tus entradas.
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endif %}
+    <form autocomplete="off" action="/gestionar-eventos/{{ id_evento }}/invitaciones/" method="post">
+        {% csrf_token %}
+        <input autocomplete="false" name="hidden" type="text" style="display:none;">
+        <div class="form-group">
+            <label for="emailsInvitaciones"><strong>Escribe los emails a los que quieres enviar invitaciones, separándolos con espacios</strong></label>
+            <textarea class="form-control" id="emailsInvitaciones" name = "emailsInvitaciones" rows="4" placeholder="ejemplo@email.com ejemplo2@email.com ejemplo3@email.com..."></textarea>
+        </div>
+
+        <button class="btn btn-outline-light btnOrg" id="btnCrearEvento" type="submit">Enviar invitaciones</button>
+    </form>
+
+</div>
+
+</div>
+
+{% endblock %}

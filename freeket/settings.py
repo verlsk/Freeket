@@ -25,9 +25,9 @@ MEDIA_URL = "/media/"
 SECRET_KEY = '_t*x-ngo0n+l2f6p!de0zp^qa$+^b8eoww+=#+d$_rk#sch&@-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -119,6 +119,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
+STATIC_ROOT = '/home/verlsk/Downloads/freeket/freeketapp/static'
 STATIC_URL = '/static/'
 
 EMAIL_USE_TLS = True

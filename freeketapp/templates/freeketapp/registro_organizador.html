@@ -12,17 +12,49 @@
         <span aria-hidden="true">&times;</span>
         </button>
 
-         {{ errores }}
+         {% for i in errores %}
+            <li>{{ i }}</li>
+
+        {% endfor %}
         </div>
     {% endif %}
     <form autocomplete="off" action={% url 'registro_organizador' %} method="post">
 {% csrf_token %}
     <input autocomplete="false" name="hidden" type="text" style="display:none;">
-        <div class="form-group">
-            <label><strong>Dirección: *</strong></label>
-                        <input class="form-control" name="orgDireccion"
+         <input type="hidden" id="userType" name="user_type" value="assist">
+
+            <div class ="row my-2">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label><strong>Ciudad: *&nbsp&nbsp</strong></label>
+                        <input class="form-control {{ b_ciu }}" name="orgCiudad"
+                               type="text" value="{{ orgCiudad }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label><strong>Dirección: *&nbsp&nbsp</strong></label>
+                        <input class="form-control {{ b_dir }}" name="orgDireccion"
                                type="text" value="{{ orgDireccion }}">
-        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label><strong>Código postal: *&nbsp&nbsp</strong></label>
+                        <input class="form-control {{ b_cp }}" name="orgCPostal"
+                               type="text" value="{{ orgCPostal }}">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label><strong>Teléfono: *&nbsp&nbsp</strong></label>
+                <input class="form-control {{ b_tel }}" name="orgTelefono"
+                       type="text" value="{{ orgTelefono }}">
+            </div>
+         <div class="form-check">
+            <input type="checkbox" class="form-check-input {{ b_ck }}" id="exampleCheck2" name="ckOrg">
+            <label class="form-check-label" for="exampleCheck2"><small>Marcando esta opción, aceptas utilizar los datos de los asistentes a tus eventos exclusivamente con fines de organización de estos eventos. *</small></label>
+         </div>
             <button class="btn btn-outline-light btnOrg btn-lg" id="btnCrearEvento" type="submit">Registrar</button>
     </form>
 

@@ -8,6 +8,9 @@ class Organizador(models.Model):
     nickname = models.CharField(max_length=50)
     exclusive_org = models.BooleanField(default=True)
     direccion = models.CharField(max_length=100, default='')
+    ciudad = models.CharField(max_length=100, default='')
+    cpostal = models.CharField(max_length=100, default='')
+    telefono = models.CharField(max_length=100, default='')
     objects = models.Manager
 
 

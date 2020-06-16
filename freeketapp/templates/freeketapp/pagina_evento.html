@@ -28,14 +28,14 @@
 {% endif %}
 {% if profile == 'org' %}
     <div class="alert alert-danger" role="alert">
-          Para adquirir entradas, cambia al perfil de asistente
+        <strong>Para adquirir entradas, cambia al perfil de asistente</strong>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
 {% elif mostrarcomprar != 'y' and adquiridas != 'y' %}
     <div class="alert alert-danger" role="alert">
-         No puedes adquirir entradas, no hay entradas disponibles o ya ha finalizado. Si es el primer caso, puedes apuntarte a la lista de espera y te notificaremos cuando haya entradas disponibles.
+         No puedes adquirir entradas, no hay entradas disponibles o ya ha finalizado. Si es el primer caso, puedes apuntarte a la lista de espera y te notificaremos cuando haya entradas disponibles. <strong>Necesitas estar registrado para ello</strong>
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>
       </button>
@@ -80,7 +80,26 @@
 
             </div>
         </div>
+        {% if profile != 'org' %}
+        {% if mostrarcomprar == 'y' %}
+        <div class="row my-5">
 
+            <div class="col-md-12">
+            <a href="#rowComprar"><button class="btn btn-outline-light btnOrg float-right">Adquirir entradas</button></a>
+                </div>
+
+        </div>
+        {% endif %}
+        {% endif %}
+        <div class="row" id="rowDescripcion">
+            <div class="col-md-12">
+            <br>
+            <h4>Información acerca del evento</h4>
+            </div>
+            <div class="col-md-12 text-justify" id="colDescripcion">
+                {{ descripcion|linebreaks }}
+            </div>
+        </div>
         <div class="row" id="rowComprar">
             <div class="col-md-12">
         {% if mostrarcomprar == 'y' %}
@@ -94,16 +113,18 @@
                 <input type="hidden" name="nameEvento" value="{{ titulo }}">
                 <input type="hidden" name="idEvento" value="{{ url_id }}">
                 <input id="nMaxInput" name="nMaxInput" type="hidden" value="{{ nmax }}">
+                {% if profile != 'org' %}
                 <div class="form-group">
                     <label for="nComprarEntradas">¿Cuántas entradas quieres?</label>
                     <select class="form-control" id="nComprarEntradas" name="nComprarEntradas">
                     </select>
                 </div>
-                {% if profile != 'org' %}
+
                 <button class="btn btn-primary float-right" id="btnComprar" type="submit">Adquirir entradas</button>
                 {% endif %}
             </form>
         {% endif %}
+
                 {% if listaespera == 'y' or listaespera == 'quitado' %}
                     {% if islogged == 'y' %}
                     <form action={% url 'listaespera' %} method = "post">
@@ -125,15 +146,7 @@
             </div>
         </div>
 
-        <div class="row" id="rowDescripcion">
-            <div class="col-md-12">
-            <br>
-            <h4>Información acerca del evento</h4>
-            </div>
-            <div class="col-md-12 text-justify" id="colDescripcion">
-                {{ descripcion|linebreaks }}
-            </div>
-        </div>
+
     </div>
 </div>
 {% endblock %}

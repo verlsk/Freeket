@@ -31,9 +31,11 @@ $(document).ready(function () {
             .done(response => {
 
                     html_content = "";
+                    if (response.length == 0)
+                        html_content += '<small>&nbspNingún evento coincide con tu búsqueda</small>'
                     for (i = 0; i < response.length; i++) {
 
-                      html_content += '<div class="elemento-busqueda"><a href="/evento/'+response[i]["fields"]["url_id"]+'"> <div style="background-image: url(/media/' + response[i]["fields"]["img"] + ')" class="image-busqueda"></div><div class="text-busqueda"><div class="text-main-busqueda"><strong>'+response[i]["fields"]["titulo"]+'</strong></div></div></a></div>'
+                      html_content += '<div class="elemento-busqueda"><a href="/evento/'+response[i]["fields"]["url_id"]+'"> <div style="background-image: url(/media/' + response[i]["fields"]["img"] + ')" class="image-busqueda"></div><div class="text-busqueda"><div class="text-main-busqueda" style="color:purple"><strong>'+response[i]["fields"]["titulo"]+'</strong></div></div></a></div>'
 
                     }
                     eventos_div.html(html_content)
@@ -103,9 +105,13 @@ $(document).ready(function () {
                     if (response['resp'] == true)
                         alert("Correcto!");
 
+                    else if (response['resp'] == 'otro'){
+
+                        alert("La entrada pertenece a otro evento!")
+                    }
                     else {
                         if (response['resp'] == 'ya validada')
-                            alert("La entrada ya se ha usadoo")
+                            alert("La entrada ya se ha usado")
                     }
 
                 })
@@ -180,4 +186,14 @@ $(document).ready(function () {
     html5QrcodeScannerSalida.render(onScanSuccessSalida);
     }
 
+
+    $('#ttRol').on({
+      "click": function() {
+        $(this).tooltip({ items: "#ttRol", content: "Como asistente, únicamente podrás adquirir a entradas para eventos.\nComo organizador, tendrás el poder de organizar eventos nuevos, pero no podrás adquirir entradas.\nSi seleccionas la opción Ambos, podrás ejercer tanto de asistente como de organizador de eventos"});
+        $(this).tooltip("open");
+      },
+      "mouseout": function() {
+         $(this).tooltip("close");
+      }
+    });
 });

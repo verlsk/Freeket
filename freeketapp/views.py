@@ -124,18 +124,22 @@ def crear_evento(request):
             img = 'm/default.jpg'
         descripcion = request.POST.get('descripcion', '')
         if descripcion == '':
+            context['b_det'] = 'border-danger'
             errores.append("Escribe una descripción acerca de tu evento")
         elif len(descripcion) > 20000:
+            context['b_det'] = 'border-danger'
             errores.append("Tu descripción es demasiado larga")
         # formatear la fecha para que la bbdd la pueda almacenar
         fecha = request.POST.get('fechaEvento', '')
         fecha = validate_date(fecha)
         if not fecha:
+            context['b_f'] = 'border-danger'
             errores.append("Formato de fecha incorrecto")
 
         hora = request.POST.get('horaEvento', '')
 
         if not isTimeFormat(hora):
+            context['b_h'] = 'border-danger'
             errores.append("Formato de hora incorrecto")
 
         nentradas = request.POST.get('nEntradas', '')
@@ -161,9 +165,28 @@ def crear_evento(request):
             url_id = url_id + "_" + str(e_number)
         context['url_id'] = url_id
 
-        if titulo == '' or nentradas == '' or ciudad == '' or direccion == '' or cpostal == '' or not RepresentsInt(
-                nentradas) or int(nmaxentradas) < 0 or int(nmaxentradas) > 10 or int(nentradas) < 0:
-            errores.append("Campos obligatorios vacíos o erróneos")
+        if titulo == '':
+            context['b_t'] = 'border-danger'
+            errores.append("El título no puede estar vacío")
+        if nentradas == '':
+            context['b_n'] = 'border-danger'
+            errores.append("Tienes que especificar un número de entradas")
+        if ciudad == '':
+            context['b_ciu'] = 'border-danger'
+            errores.append("La ciudad no puede estar vacía")
+        if direccion == '':
+            context['b_dir'] = 'border-danger'
+            errores.append("La dirección no puede estar vacía")
+        if cpostal == '':
+            context['b_cp'] = 'border-danger'
+            errores.append("El código postal no puede estar vacío")
+        if not RepresentsInt(nentradas) or int(nentradas) < 0:
+            context['b_n'] = 'border-danger'
+            errores.append("Número de entradas no válido")
+        if int(nmaxentradas) < 0 or int(nmaxentradas) > 10:
+            context['b_nmax'] = 'border-danger'
+            errores.append("El número máximo de entradas por usuario no es válido")
+
 
         if len(errores) == 0:
             context['publicado'] = True
@@ -181,7 +204,14 @@ def crear_evento(request):
                        organizador=org, key=key, ciudad=ciudad, direccion=direccion, cpostal=cpostal)
 
             if e.img.width < e.img.height:
+                context['b_i'] = 'border-danger'
                 errores.append("La imagen debe ser horizontal")
+                context['publicado'] = None
+                path = os.getcwd() + '/media/' + e.img.name
+                os.remove(path)
+                e.delete()
+            elif e.img.size > 2*1024*1024:
+                errores.append("La imagen es demasiado grande")
                 context['publicado'] = None
                 path = os.getcwd() + '/media/' + e.img.name
                 os.remove(path)
@@ -193,11 +223,6 @@ def crear_evento(request):
 
         context['errores'] = errores
 
-        '''
-        except:
-            errores.append("Campos obligatorios vacíos o erróneos!")
-            context['errores'] = errores
-        '''
 
     return render(request, "freeketapp/plantilla_eventos.html", context)
 
@@ -290,11 +315,13 @@ def pagina_evento(request, id_evento):
 
             if evento.numero_entradas_actual == 0:
                 context['mostrarcomprar'] = 'n'
-                context['listaespera'] = 'y'
-                l_espera = ListaEspera.objects.filter(evento=evento, usuario=request.user)
 
-                if l_espera.count() > 0:
-                    context['listaespera'] = 'disabled'
+                if context['islogged'] == 'y':
+                    context['listaespera'] = 'y'
+                    l_espera = ListaEspera.objects.filter(evento=evento, usuario=request.user)
+
+                    if l_espera.count() > 0:
+                        context['listaespera'] = 'disabled'
 
             esp_date_format = eng_date_format.strftime("%A %d de %B de %Y")
             context['fecha'] = esp_date_format
@@ -342,10 +369,14 @@ def get_entrada(entrada, p):
     img_w = entrada.evento.img.width
     img_h = entrada.evento.img.height
 
-    new_w = 330 * (img_w / img_h)
+    new_h = 330
+    new_w = new_h * (img_w / img_h)
 
+    if new_w > 530:
+        new_w = 530
+        new_h = (img_h * new_w) / img_w
     x_margin = (600 - new_w) / 2
-    p.drawImage(path, x_margin, 200, height=330, width=new_w, mask='auto')
+    p.drawImage(path, x_margin, 200, height=new_h, width=new_w, mask='auto')
 
     path = os.getcwd()
 
@@ -500,29 +531,73 @@ def registro(request):
         duplicate_users = User.objects.filter(username=username)
         duplicated_email = User.objects.filter(email=email)
         org_direccion = request.POST.get('orgDireccion')
+        org_ciudad = request.POST.get('orgCiudad')
+        org_cpostal = request.POST.get('orgCPostal')
+        org_telefono = request.POST.get('orgTelefono')
+        ck_org = request.POST.get('ckOrg')
+        ck_datos = request.POST.get('ckDatos')
         if (user_type == 'org' or user_type == 'both') and org_direccion == '':
             errores.append("Para organizadores, la dirección es necesaria")
+            context['b_dir'] = "border-danger"
         elif org_direccion != '':
             context['orgDireccion'] = org_direccion
+
+        if (user_type == 'org' or user_type == 'both') and ck_org is None:
+            errores.append("Tienes que aceptar la política de uso de datos de los asistentes")
+
+        if (user_type == 'org' or user_type == 'both') and org_ciudad == '':
+            errores.append("Para organizadores, la ciudad es necesaria")
+            context['b_ciu'] = "border-danger"
+        elif org_ciudad != '':
+            context['orgCiudad'] = org_ciudad
+
+        if (user_type == 'org' or user_type == 'both') and org_cpostal == '':
+            errores.append("Para organizadores, el código postal es necesario")
+            context['b_cp'] = "border-danger"
+        elif org_ciudad != '':
+            context['orgCPostal'] = org_ciudad
+
+        if (user_type == 'org' or user_type == 'both') and org_telefono == '':
+            errores.append("Para organizadores, el teléfono es necesario")
+            context['b_tel'] = "border-danger"
+        elif org_telefono != '':
+            context['orgTelefono'] = org_telefono
+
         if duplicate_users.exists():
             errores.append("Nombre de usuario existente")
+            context['b_u'] = "border-danger"
         else:
             context["username"] = username
         if duplicated_email.exists():
             errores.append("Email registrado por otro usuario")
+            context['b_e'] = "border-danger"
         else:
             context["email"] = email
 
         if len(password) < 8:
             errores.append("La contraseña es demasiado corta")
+            context['b_p'] = "border-danger"
             context["name"] = name
             context["surname"] = apellido
         elif password != rep_password:
             errores.append("Las contraseñas no coinciden")
+            context['b_p'] = "border-danger"
             context["name"] = name
             context["surname"] = apellido
-        if username == '' or email == '' or password == '':
-            errores.append("Campos obligatorios vacíos")
+        if username == '':
+            errores.append("El nombre de usuario no puede estar vacío")
+            context['b_u'] = "border-danger"
+
+        if email == '':
+            errores.append("El email no puede estar vacío")
+            context['b_e'] = "border-danger"
+
+        if password == '':
+            errores.append("La contraseña no puede estar vacía")
+            context['b_p'] = "border-danger"
+        if ck_datos is None:
+            errores.append("Es obligatorio que aceptes nuestra política de tratamiento de datos personales para registrate en el sistema")
+            context['b_ck'] = "border-danger"
         if len(errores) > 0:
             context['errores'] = errores
         else:
@@ -535,7 +610,7 @@ def registro(request):
             user.first_name = name
             user.last_name = apellido
             if user_type == 'org':
-                org = Organizador(nickname=username, id=user.id, exclusive_org=True)
+                org = Organizador(nickname=username, id=user.id, exclusive_org=True, direccion=org_direccion, ciudad=org_ciudad, cpostal=org_cpostal, telefono=org_telefono)
                 org.save()
             elif user_type == 'both':
                 org = Organizador(nickname=username, id=user.id, exclusive_org=False)
@@ -611,20 +686,7 @@ def my_login(request):
 
 def confirmation(request, id_confirmacion_url, user):
     context = {}
-    if request.user.is_authenticated:
-        context['islogged'] = 'y'
-        context['name'] = request.user.username
-        org = Organizador.objects.filter(id=request.user.id)
-        if org.count() == 0:
-            context['org'] = False
-        else:
-            context['org'] = True
-            if org[0].exclusive_org:
-                context['assist'] = False
-            else:
-                context['assist'] = True
-    else:
-        context['islogged'] = 'n'
+
     try:
         user_object = User.objects.get(username=user)
         id_confirmacion = ConfirmationCode.objects.get(usuario=user_object)
@@ -632,9 +694,32 @@ def confirmation(request, id_confirmacion_url, user):
             context['texto'] = "Email confirmado correctamente!"
             # no lo necesitamos mas
             id_confirmacion.delete()
+            login(request, user_object)
+
         else:
             context['texto'] = "Fallo en la confirmación del email"
-    except ValueError:
+
+        if request.user.is_authenticated:
+            context['islogged'] = 'y'
+            context['name'] = request.user.username
+            org = Organizador.objects.filter(id=request.user.id)
+            if org.count() == 0:
+                context['org'] = False
+                request.session['profile'] = 'assist'
+            else:
+                context['org'] = True
+
+                if org[0].exclusive_org:
+                    context['assist'] = False
+                    request.session['profile'] = 'org'
+                else:
+                    context['assist'] = True
+                    request.session['profile'] = 'assist'
+            context['profile'] = request.session['profile']
+            login(request, user_object)
+        else:
+            context['islogged'] = 'n'
+    except:
         raise Http404("Codigo incorrecto")
     return render(request, "freeketapp/confirmacion.html", context)
 
@@ -963,7 +1048,7 @@ def gestionar_eventos_modificar(request, id_evento):
 
         if request.method == 'POST':
             titulo = request.POST.get('tituloEvento', '')
-            if titulo != evento.titulo:
+            if titulo != str(evento.titulo):
                 evento.titulo = titulo
                 cambios = True
             # formatear la fecha para que la bbdd la pueda almacenar
@@ -971,21 +1056,35 @@ def gestionar_eventos_modificar(request, id_evento):
             try:
                 img = request.FILES['imgEvento']
                 evento.img = img
+                if evento.img.width < evento.img.height:
+                    context['b_i'] = 'border-danger'
+                    errores.append("La imagen debe ser horizontal")
+                    context['publicado'] = None
+                    path = os.getcwd() + '/media/' + evento.img.name
+                    os.remove(path)
+                    evento.delete()
             except:
                 pass
             descripcion = request.POST.get('descripcion', '')
             if descripcion == '':
+                context['b_det'] = 'border-danger'
                 errores.append("Escribe una descripción acerca de tu evento")
             elif len(descripcion) > 20000:
+                context['b_det'] = 'border-danger'
                 errores.append("Tu descripción es demasiado larga")
             else:
-                evento.descripcion = descripcion
+                if str(evento.descripcion) != descripcion:
+                    cambios = True
+                    evento.descripcion = descripcion
+
             fecha = request.POST.get('fechaEvento', '')
             fecha = validate_date(fecha)
             if not fecha:
+                context['b_f'] = 'border-danger'
                 errores.append("Formato de fecha incorrecto")
             else:
                 if str(fecha) != str(evento.fecha):
+
                     evento.fecha = fecha
                     fecha = fecha.split("-")
                     fecha = fecha[2] + "-" + fecha[1] + "-" + fecha[0]
@@ -995,6 +1094,7 @@ def gestionar_eventos_modificar(request, id_evento):
 
             hora = request.POST.get('horaEvento', '')
             if not isTimeFormat(hora):
+                context['b_h'] = 'border-danger'
                 errores.append("Formato de hora incorrecto")
 
             if hora != evento.hora:
@@ -1003,46 +1103,75 @@ def gestionar_eventos_modificar(request, id_evento):
                 mandar_email = True
 
             nentradas = request.POST.get('nEntradas', '')
-            if nentradas != evento.numero_entradas_actual:
+            if str(nentradas) != str(evento.numero_entradas_actual):
                 evento.numero_entradas_inicial = evento.numero_entradas_inicial - evento.numero_entradas_actual + int(
                     nentradas)
                 evento.numero_entradas_actual = nentradas
                 cambios = True
 
             nmaxentradas = request.POST.get('nMaxEntradas', '')
-            if nmaxentradas != evento.max_entradas_user:
+            if nmaxentradas != str(evento.max_entradas_user):
                 evento.max_entradas_user = nmaxentradas
                 cambios = True
             ciudad = request.POST.get('ciudad', '')
-            if ciudad != evento.ciudad:
+            if str(ciudad) != str(evento.ciudad):
                 evento.ciudad = ciudad
                 cambios = True
                 mandar_email = True
             cpostal = request.POST.get('cpostal', '')
-            if cpostal != evento.cpostal:
+            if cpostal != str(evento.cpostal):
                 evento.cpostal = cpostal
                 cambios = True
                 mandar_email = True
             direccion = request.POST.get('direccion', '')
-            if direccion != evento.direccion:
+            if direccion != str(evento.direccion):
                 evento.direccion = direccion
                 cambios = True
                 mandar_email = True
 
-            if titulo == '' or nentradas == '' or ciudad == '' or direccion == '' or cpostal == '' or not RepresentsInt(
-                    nentradas) or int(nmaxentradas) < 0 or int(nmaxentradas) > 10 or int(nentradas) < 0:
-                errores.append("Campos obligatorios vacíos o erróneos")
+            if titulo == '':
+                context['b_t'] = 'border-danger'
+                errores.append("El título no puede estar vacío")
+            if nentradas == '':
+                context['b_n'] = 'border-danger'
+                errores.append("Tienes que especificar un número de entradas")
+            if ciudad == '':
+                context['b_ciu'] = 'border-danger'
+                errores.append("La ciudad no puede estar vacía")
+            if direccion == '':
+                context['b_dir'] = 'border-danger'
+                errores.append("La dirección no puede estar vacía")
+            if cpostal == '':
+                context['b_cp'] = 'border-danger'
+                errores.append("El código postal no puede estar vacío")
+            if not RepresentsInt(nentradas) or int(nentradas) < 0:
+                context['b_n'] = 'border-danger'
+                errores.append("Número de entradas no válido")
+            if int(nmaxentradas) < 0 or int(nmaxentradas) > 10:
+                context['b_nmax'] = 'border-danger'
+                errores.append("El número máximo de entradas por usuario no es válido")
+
+            nota_informativa = ''
+            if mandar_email:
+                nota_informativa = request.POST.get('notaInformativa', '')
+                if nota_informativa == '':
+                    errores.append(
+                        "Debido a los cambios realizados, es necesario que escribas una nota informativa a tus asistentes")
+                    context['b_not'] = 'border-danger'
             context['errores'] = errores
-            if len(errores) == 0 and cambios == True:
-                context['publicado'] = True
+            if len(errores) == 0:
                 context['errores'] = None
-                evento.save()
-                if mandar_email:
-                    nota_informativa = request.POST.get('notaInformativa', '')
-                    # mandar email
-                    t = threading.Thread(target=enviar_email_cambios, args=(evento, nota_informativa), kwargs={})
-                    t.setDaemon(True)
-                    t.start()
+                if cambios == True:
+
+                    context['publicado'] = True
+
+                    evento.save()
+
+                    if mandar_email:
+                        # mandar email
+                        t = threading.Thread(target=enviar_email_cambios, args=(evento, nota_informativa), kwargs={})
+                        t.setDaemon(True)
+                        t.start()
         else:
             context['fecha'] = evento.fecha.strftime("%d-%m-%Y")
         context['titulo'] = evento.titulo
@@ -1303,12 +1432,18 @@ def eventos(request):
         if request.method == 'POST':
             ordenado = request.POST.get('ordenado')
             if ordenado == '0':
-                eventos = Evento.objects.order_by('-fecha_creacion')
                 eventos = eventos.filter(fecha__gte=strftime("%Y-%m-%d", localtime(time())))
+                eventos = Evento.objects.order_by('-fecha_creacion')
+
+                print (eventos)
+
                 context['mode'] = 'fecha'
         n = 3
         eventos_total = [eventos[i * n:(i + 1) * n] for i in range((len(eventos) + n - 1) // n)]
         context['eventos_total'] = eventos_total
+
+        if len(eventos) == 0:
+            context['eventos_total'] = None
 
     return render(request, "freeketapp/eventos.html", context)
 
@@ -1387,14 +1522,46 @@ def registro_organizador(request):
         tmp_org = Organizador.objects.filter(id=request.user.id)
         if tmp_org.count() > 0:
             return redirect('index')
-        if request.POST.get('orgDireccion') != '':
+        org_ciudad = request.POST.get('orgCiudad')
+        org_cpostal = request.POST.get('orgCPostal')
+        org_telefono = request.POST.get('orgTelefono')
+        ck_org = request.POST.get('ckOrg')
+        errores = []
+        if ck_org is None:
+            errores.append("Tienes que aceptar la política de uso de datos de los asistentes")
+
+        if org_ciudad == '':
+            errores.append("Para organizadores, la ciudad es necesaria")
+            context['b_ciu'] = "border-danger"
+        elif org_ciudad != '':
+            context['orgCiudad'] = org_ciudad
+
+        if org_cpostal == '':
+            errores.append("Para organizadores, el código postal es necesario")
+            context['b_cp'] = "border-danger"
+        elif org_ciudad != '':
+            context['orgCPostal'] = org_ciudad
+
+        if  org_telefono == '':
+            errores.append("Para organizadores, el teléfono es necesario")
+            context['b_tel'] = "border-danger"
+        elif org_telefono != '':
+            context['orgTelefono'] = org_telefono
+
+        if request.POST.get('orgDireccion') == '':
+            errores.append("La dirección no puede estar vacía")
+        else:
+            context['orgDireccion'] = request.POST.get('orgDireccion')
+
+        if len(errores) == 0:
             org = Organizador(nickname=request.user.username, id=request.user.id,
-                              direccion=request.POST.get('orgDireccion'), exclusive_org=False)
+                              direccion=request.POST.get('orgDireccion'), exclusive_org=False, ciudad=org_ciudad, cpostal=org_cpostal, telefono=org_telefono)
             org.save()
             request.session['profile'] = 'org'
             context['errores'] = None
-        else:
             context['errores'] = "La dirección no puede estar vacía"
+        else:
+            context['errores'] = errores
             return render(request, "freeketapp/registro_organizador.html", context)
         return redirect('index')
     return render(request, "freeketapp/registro_organizador.html", context)
@@ -1443,6 +1610,8 @@ def resultados(request):
         evs_total = [evs[i * n:(i + 1) * n] for i in range((len(evs) + n - 1) // n)]
         context['eventos_total'] = evs_total
 
+        if len(evs) == 0:
+            context['eventos_total'] = None
     return render(request, "freeketapp/resultados.html", context)
 
 
@@ -1509,12 +1678,12 @@ def reader_ajax(request):
         res = {}
 
         try:
-            print (id_entrada)
-            txt_decoded = f.decrypt(id_entrada.encode()).decode()
-            print (txt_decoded)
-            entradas = Entrada.objects.filter(id=txt_decoded, evento=evento)
 
+            txt_decoded = f.decrypt(id_entrada.encode()).decode()
+
+            entradas = Entrada.objects.filter(id=txt_decoded, evento=evento)
             if entradas.count() > 0:
+
                 if entradas[0].validada:
                     res['resp'] = 'ya validada'
                 else:
@@ -1585,6 +1754,18 @@ def mail_lista_espera(l_espera):
             'Nuevas entradas disponibles!', message, 'freeketmail@gmail.com', [email_dir])
         email.send()
 
+def mail_devolver(entrada, evento):
+
+    email_dir = entrada.usuario.email
+    message = "Hola, " + entrada.usuario.username +"\nTe escribimos para confirmar la devolución de tu entrada para el evento \""+entrada.evento.titulo+"\""
+    message += "\nLamentamos que no puedas asistir al evento y agradecemos profundamente el tiempo que has dedicado a devolver tu entrada."
+    email = EmailMessage(
+        'Freeket: devolución de entrada', message, 'freeketmail@gmail.com', [email_dir])
+    email.send()
+
+    entrada.delete()
+    evento.numero_entradas_actual += 1
+    evento.save()
 @login_required(login_url='/login')
 def devolver(request, id_entrada):
     context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
@@ -1611,9 +1792,11 @@ def devolver(request, id_entrada):
             if request.user.id != entrada.usuario.id:
                 raise Http404()
             evento = entrada.evento
-            evento.numero_entradas_actual += 1
-            entrada.delete()
-            evento.save()
+            # Mandamos email
+            t_dev = threading.Thread(target=mail_devolver, args=(entrada,evento), kwargs={})
+            t_dev.setDaemon(True)
+            t_dev.start()
+
             context['devolver'] = True
             entradas = Entrada.objects.filter(usuario=request.user)
             ids = []

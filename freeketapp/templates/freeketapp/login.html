@@ -33,8 +33,13 @@
             <label for="password"><strong>Contraseña: </strong></label>
             <input class="form-control" id="password" name="password" type="password">
         </div>
+
         <small class="form-text text-muted forgot"> <a href={% url 'forgot_password_form' %}>He olvidado la contraseña</a>.</small>
+        <small class="form-text text-muted forgot my-2"> <a href={% url 'registro' %}>Crear cuenta</a></small>
         <button class="btn btn-outline-light btnOrg float-right" id="btnCrearEvento" type="submit">Iniciar sesión</button>
+        <div class="form-group">
+
+        </div>
     </form>
 </div>
 

@@ -30,24 +30,60 @@
     <input autocomplete="false" name="hidden" type="text" style="display:none;">
     <div class="form-group">
         <label for="username"><strong>Nombre de usuario: *</strong></label>
-        <input class="form-control" id="username" name="username"
+        <input class="form-control {{ b_u }}" id="username" name="username"
                type="text" value="{{ username }}">
         <small class="form-text text-muted">Este será el identificador que utilices para acceder a la
             página.</small>
     </div>
-    <label><strong>Rol: *</strong></label>
+    <label><strong>Rol: *&nbsp<i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" id="ttRol" title="Como asistente, únicamente podrás adquirir a entradas para eventos.
+
+Como organizador, tendrás el poder de organizar eventos nuevos, pero no podrás adquirir entradas.
+
+Si seleccionas la opción Ambos, podrás ejercer tanto de asistente como de organizador de eventos"></i><small>&nbsp(info)</small></strong></label>
     <div class="form-inline">
+
+
+
         <button class="btn btn-outline-light btnOrg btnSideActive" id="btnAsistente" type="button">Asistente</button>
         <button class="btn btn-outline-light btnOrg" id="btnOrganizador"type="button">Organizador</button>
         <button class="btn btn-outline-light btnOrg" id="btnAmbos"type="button">Ambos</button>
     </div>
+
     <div class="d-none" id="infoOrg">
         <input type="hidden" id="userType" name="user_type" value="assist">
-            <div class="form-group">
-                <label><strong>Dirección: *</strong></label>
-                <input class="form-control" name="orgDireccion"
-                       type="text" value="{{ orgDireccion }}">
+
+            <div class ="row my-2">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label><strong>Ciudad: *&nbsp&nbsp</strong></label>
+                        <input class="form-control {{ b_ciu }}" name="orgCiudad"
+                               type="text" value="{{ orgCiudad }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label><strong>Dirección: *&nbsp&nbsp</strong></label>
+                        <input class="form-control {{ b_dir }}" name="orgDireccion"
+                               type="text" value="{{ orgDireccion }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label><strong>Código postal: *&nbsp&nbsp</strong></label>
+                        <input class="form-control {{ b_cp }}" name="orgCPostal"
+                               type="text" value="{{ orgCPostal }}">
+                    </div>
+                </div>
             </div>
+            <div class="form-group">
+                <label><strong>Teléfono: *&nbsp&nbsp</strong></label>
+                <input class="form-control {{ b_tel }}" name="orgTelefono"
+                       type="text" value="{{ orgTelefono }}">
+            </div>
+         <div class="form-check">
+            <input type="checkbox" class="form-check-input {{ b_ck }}" id="exampleCheck2" name="ckOrg">
+            <label class="form-check-label" for="exampleCheck1"><small>Marcando esta opción, aceptas utilizar los datos de los asistentes a tus eventos exclusivamente con fines de organización de estos eventos. *</small></label>
+        </div>
     </div>
     <div class="form-group">
 
@@ -64,23 +100,28 @@
     </div>
     <div class="form-group">
         <label for="email"><strong>Email: *</strong></label>
-        <input class="form-control" id="email" name="email"
+        <input class="form-control {{ b_e }}" id="email" name="email"
                type="email" value="{{ email }}">
     </div>
     <div class="form-group">
         <label for="password"><strong>Contraseña: *</strong></label>
-        <input class="form-control" id="password" name="password" type="password">
+        <input class="form-control {{ b_p }}" id="password" name="password" type="password">
         <small class="form-text text-muted">Mínimo ocho caracteres</small>
     </div>
     <div class="form-group">
         <label for="repPassword"><strong>Repite la contraseña: *</strong></label>
-        <input class="form-control" id="repPassword" name="repPassword" type="password">
+        <input class="form-control {{ b_p }}" id="repPassword" name="repPassword" type="password">
+    </div>
+
+    <div class="form-check">
+        <input type="checkbox" class="form-check-input {{ b_ck }}" id="exampleCheck1" name="ckDatos" required>
+        <label class="form-check-label" for="exampleCheck1"><small>Marcando esta opción, aceptas el uso de los datos personales que
+        has proporcionado con el único objetivo de ser utilizados dentro del sistema Freeket, para mejorar tu experiencia de usuario y para identificarte dentro del sistema.
+            Únicamente compartiremos tus datos con los organizadores de los eventos a los que asistas, pudiendo estos utilizar tus datos única y exclusivamente para cuestiones relacionadas con el evento organizado. *</small></label>
     </div>
     <small class="form-text text-muted">* Información obligatoria.</small>
-    <small class="form-text text-muted"> Al registrarte declaras aceptar los términos y condiciones de uso, así como
-        la política de privacidad y la política de cookies.</small>
-
     <button class="btn btn-outline-light btnOrg float-right" id="crearEvento" type="submit">Registrar</button>
+
     </form>
     {% endif %}
 </div>

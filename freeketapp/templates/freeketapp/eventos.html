@@ -2,7 +2,7 @@
 
 {% block contenido %}
 
-
+{% if eventos_total is not None %}
     <div id ="jumboBusqueda">
         <div class="container contBus">
 
@@ -44,6 +44,10 @@
 
         </div>
     </div>
-
+{% else %}
+<div class = "container contGestEvs">
+    <h1>Tu búsqueda no ha producido ningún resultado</h1>
+</div>
+{% endif %}
 
 {% endblock %}

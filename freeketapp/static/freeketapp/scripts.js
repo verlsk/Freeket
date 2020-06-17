@@ -1,17 +1,19 @@
 $(document).ready(function () {
     $("#fechaEvento").datepicker({minDate: '1', dateFormat: 'dd-mm-yy'});
 
+
     $('#horaEvento').timepicker({
     timeFormat: 'H:mm',
     interval: 15,
     minTime: '00',
     maxTime: '23:55',
-    defaultTime: '00:00',
+    defaultTime: $('#horaEvento').val(),
     startTime: '00:00',
     dynamic: false,
     dropdown: true,
     scrollbar: true
     });
+
 
     var nmax = $('#nMaxInput').val();
     for (var i = 1; i <= nmax; i++){
@@ -189,7 +191,7 @@ $(document).ready(function () {
 
     $('#ttRol').on({
       "click": function() {
-        $(this).tooltip({ items: "#ttRol", content: "Como asistente, únicamente podrás adquirir a entradas para eventos.\nComo organizador, tendrás el poder de organizar eventos nuevos, pero no podrás adquirir entradas.\nSi seleccionas la opción Ambos, podrás ejercer tanto de asistente como de organizador de eventos"});
+        $(this).tooltip({ items: "#ttRol", content: "- Como <strong>Asistente</strong>, únicamente podrás adquirir a entradas para eventos.<br><br>- Como <strong>Organizador</strong>, tendrás el poder de organizar eventos nuevos, pero no podrás adquirir entradas.<br><br>- Si seleccionas la opción <strong>Ambos</strong>, podrás ejercer tanto de asistente como de organizador de eventos"});
         $(this).tooltip("open");
       },
       "mouseout": function() {

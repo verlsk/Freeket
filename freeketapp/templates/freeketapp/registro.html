@@ -28,12 +28,23 @@
     <form autocomplete="off" action={% url 'registro' %} method="post">
     {% csrf_token %}
     <input autocomplete="false" name="hidden" type="text" style="display:none;">
-    <div class="form-group">
-        <label for="username"><strong>Nombre de usuario: *</strong></label>
-        <input class="form-control {{ b_u }}" id="username" name="username"
-               type="text" value="{{ username }}">
-        <small class="form-text text-muted">Este será el identificador que utilices para acceder a la
-            página.</small>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="username"><strong>Nombre de usuario: *</strong></label>
+                <input class="form-control {{ b_u }}" id="username" name="username"
+                       type="text" value="{{ username }}">
+                <small class="form-text text-muted">Este será el identificador que utilices para acceder a la
+                    página.</small>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="email"><strong>Email: *</strong></label>
+                <input class="form-control {{ b_e }}" id="email" name="email"
+                       type="email" value="{{ email }}">
+            </div>
+        </div>
     </div>
     <label><strong>Rol: *&nbsp<i class="fa fa-info-circle" data-toggle="tooltip" data-placement="top" id="ttRol" title="Como asistente, únicamente podrás adquirir a entradas para eventos.
 
@@ -45,40 +56,45 @@ Si seleccionas la opción Ambos, podrás ejercer tanto de asistente como de orga
 
 
         <button class="btn btn-outline-light btnOrg btnSideActive" id="btnAsistente" type="button">Asistente</button>
-        <button class="btn btn-outline-light btnOrg" id="btnOrganizador"type="button">Organizador</button>
-        <button class="btn btn-outline-light btnOrg" id="btnAmbos"type="button">Ambos</button>
+        <button class="btn btn-outline-light btnOrg ml-2" id="btnOrganizador"type="button">Organizador</button>
+        <button class="btn btn-outline-light btnOrg ml-2" id="btnAmbos"type="button">Ambos</button>
     </div>
 
     <div class="d-none" id="infoOrg">
         <input type="hidden" id="userType" name="user_type" value="assist">
 
             <div class ="row my-2">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="form-group">
                         <label><strong>Ciudad: *&nbsp&nbsp</strong></label>
-                        <input class="form-control {{ b_ciu }}" name="orgCiudad"
+                        <input class="form-control mr-4 {{ b_ciu }}" name="orgCiudad"
                                type="text" value="{{ orgCiudad }}">
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="form-group">
                         <label><strong>Dirección: *&nbsp&nbsp</strong></label>
-                        <input class="form-control {{ b_dir }}" name="orgDireccion"
+                        <input class="form-control mr-4 {{ b_dir }}" name="orgDireccion"
                                type="text" value="{{ orgDireccion }}">
                     </div>
                 </div>
-                <div class="col-md-4">
+            </div>
+            <div class ="row my-2">
+                <div class="col-md-6">
                     <div class="form-group">
-                        <label><strong>Código postal: *&nbsp&nbsp</strong></label>
-                        <input class="form-control {{ b_cp }}" name="orgCPostal"
-                               type="text" value="{{ orgCPostal }}">
+                    <label><strong>Código postal: *&nbsp&nbsp</strong></label>
+                    <input class="form-control mr-4 {{ b_cp }}" name="orgCPostal"
+                           type="text" value="{{ orgCPostal }}">
                     </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label><strong>Teléfono: *&nbsp&nbsp</strong></label>
-                <input class="form-control {{ b_tel }}" name="orgTelefono"
-                       type="text" value="{{ orgTelefono }}">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label><strong>Teléfono: *&nbsp&nbsp</strong></label>
+                        <input class="form-control {{ b_tel }}" name="orgTelefono"
+                               type="text" value="{{ orgTelefono }}">
+                    </div>
+
+                </div>
             </div>
          <div class="form-check">
             <input type="checkbox" class="form-check-input {{ b_ck }}" id="exampleCheck2" name="ckOrg">
@@ -88,31 +104,38 @@ Si seleccionas la opción Ambos, podrás ejercer tanto de asistente como de orga
     <div class="form-group">
 
     </div>
-    <div class="form-group">
-        <label for="nombre"><strong>Nombre: </strong></label>
-        <input class="form-control" id="nombre" name="nombre"
-               type="text" value="{{ name }}">
-    </div>
-    <div class="form-group">
-        <label for="apellido"><strong>Apellidos: </strong></label>
-        <input class="form-control" id="apellido" name="apellido"
-               type="text" value="{{ surname }}">
-    </div>
-    <div class="form-group">
-        <label for="email"><strong>Email: *</strong></label>
-        <input class="form-control {{ b_e }}" id="email" name="email"
-               type="email" value="{{ email }}">
-    </div>
-    <div class="form-group">
-        <label for="password"><strong>Contraseña: *</strong></label>
-        <input class="form-control {{ b_p }}" id="password" name="password" type="password">
-        <small class="form-text text-muted">Mínimo ocho caracteres</small>
-    </div>
-    <div class="form-group">
-        <label for="repPassword"><strong>Repite la contraseña: *</strong></label>
-        <input class="form-control {{ b_p }}" id="repPassword" name="repPassword" type="password">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="nombre"><strong>Nombre: </strong></label>
+                <input class="form-control w-100" id="nombre" name="nombre"
+                       type="text" value="{{ name }}">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="apellido"><strong>Apellidos: </strong></label>
+                <input class="form-control w-100" id="apellido" name="apellido"
+                       type="text" value="{{ surname }}">
+            </div>
+        </div>
     </div>
 
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="password"><strong>Contraseña: *</strong></label>
+                <input class="form-control {{ b_p }}" id="password" name="password" type="password">
+                <small class="form-text text-muted">Mínimo ocho caracteres</small>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label for="repPassword"><strong>Repite la contraseña: *</strong></label>
+                <input class="form-control {{ b_p }}" id="repPassword" name="repPassword" type="password">
+            </div>
+        </div>
+    </div>
     <div class="form-check">
         <input type="checkbox" class="form-check-input {{ b_ck }}" id="exampleCheck1" name="ckDatos" required>
         <label class="form-check-label" for="exampleCheck1"><small>Marcando esta opción, aceptas el uso de los datos personales que

@@ -1083,24 +1083,26 @@ def gestionar_eventos_modificar(request, id_evento):
                 context['b_f'] = 'border-danger'
                 errores.append("Formato de fecha incorrecto")
             else:
+
                 if str(fecha) != str(evento.fecha):
 
                     evento.fecha = fecha
-                    fecha = fecha.split("-")
-                    fecha = fecha[2] + "-" + fecha[1] + "-" + fecha[0]
-                    context['fecha'] = fecha
+                    context['fecha'] = datetime.strptime(evento.fecha, "%Y-%m-%d").strftime("%d-%m-%Y")
                     cambios = True
                     mandar_email = True
-
+                else:
+                    context['fecha'] = evento.fecha.strftime("%d-%m-%Y")
             hora = request.POST.get('horaEvento', '')
             if not isTimeFormat(hora):
                 context['b_h'] = 'border-danger'
                 errores.append("Formato de hora incorrecto")
 
-            if hora != evento.hora:
-                evento.hora = hora
-                cambios = True
-                mandar_email = True
+            else:
+
+                if hora != evento.hora:
+                    evento.hora = hora
+                    cambios = True
+                    mandar_email = True
 
             nentradas = request.POST.get('nEntradas', '')
             if str(nentradas) != str(evento.numero_entradas_actual):
@@ -1172,9 +1174,14 @@ def gestionar_eventos_modificar(request, id_evento):
                         t = threading.Thread(target=enviar_email_cambios, args=(evento, nota_informativa), kwargs={})
                         t.setDaemon(True)
                         t.start()
+
+
+
         else:
+
             context['fecha'] = evento.fecha.strftime("%d-%m-%Y")
         context['titulo'] = evento.titulo
+
         context['hora'] = evento.hora
         context['nentradas'] = evento.numero_entradas_actual
         context['ciudad'] = evento.ciudad

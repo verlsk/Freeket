@@ -37,7 +37,7 @@ $(document).ready(function () {
                         html_content += '<small>&nbspNingún evento coincide con tu búsqueda</small>'
                     for (i = 0; i < response.length; i++) {
 
-                      html_content += '<div class="elemento-busqueda"><a href="/evento/'+response[i]["fields"]["url_id"]+'"> <div style="background-image: url(/media/' + response[i]["fields"]["img"] + ')" class="image-busqueda"></div><div class="text-busqueda"><div class="text-main-busqueda" style="color:purple"><strong>'+response[i]["fields"]["titulo"]+'</strong></div></div></a></div>'
+                      html_content += '<div class="elemento-busqueda"><a href="/evento/'+response[i]["fields"]["url_id"]+'" class="stretched-link"> <div style="background-image: url(/media/' + response[i]["fields"]["img"] + ')" class="image-busqueda"></div><div class="text-busqueda"><div class="text-main-busqueda"><strong>'+response[i]["fields"]["titulo"]+'</strong></div></div></a></div>'
 
                     }
                     eventos_div.html(html_content)

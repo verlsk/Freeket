@@ -1018,10 +1018,23 @@ def enviar_email_cambios(evento, text):
         content += "Te escribimos para comunicarte que ha habido cambios en el evento \"" + evento.titulo + "\""
         content += ", al que tenías previsto asistir."
         if text != '':
-            content += "\nAquí tienes una nota del organizador:\n" + text
-        content += "\nPuedes consultar la nueva información en: 127.0.0.1:8000/evento/" + evento.url_id
+            content += "\nAquí tienes una nota del organizador:\n\n\t" + text
+        content += "\nPuedes consultar la nueva información en: freeket.es/evento/" + evento.url_id
 
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
+
+    invitado = User.objects.get(username='invitado')
+    entradas = Entrada.objects.filter(usuario=invitado)
+    for i in entradas:
+        title = "Cambios en tu evento"
+        content = "Hola: \n"
+        content += "Te escribimos para comunicarte que ha habido cambios en el evento \"" + evento.titulo + "\""
+        content += ", al que tenías previsto asistir."
+        if text != '':
+            content += "\nAquí tienes una nota del organizador:\n" + text
+        content += "\nPuedes consultar la nueva información en: freeket.es/evento/" + evento.url_id
+
+        send_mail(title, content, 'freeketmail@gmail.com', [i.aux_email], fail_silently=False)
 
 
 @login_required(login_url='/login')
@@ -1208,7 +1221,20 @@ def enviar_email_informativo(evento, text):
         content += ", al que tenías previsto asistir:"
 
         content += "\n\n    \"" + text + "\""
+
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
+
+    invitado = User.objects.get(username='invitado')
+    entradas = Entrada.objects.filter(usuario=invitado)
+    for i in entradas:
+        title = "Notificación acerca de tu evento"
+        content = "Hola: \n"
+        content += "Tienes una nota informativa de parte del organizador del evento: \"" + evento.titulo + "\""
+        content += ", al que tenías previsto asistir:"
+
+        content += "\n\n    \"" + text + "\""
+
+        send_mail(title, content, 'freeketmail@gmail.com', [i.aux_email], fail_silently=False)
 
 def enviar_email_invitaciones(evento, emails):
 
@@ -1216,7 +1242,7 @@ def enviar_email_invitaciones(evento, emails):
     for i in emails:
         if i != '' and i is not None:
             id_entrada = uuid.uuid4()
-            entrada = Entrada(usuario=user, evento=evento, id=id_entrada)
+            entrada = Entrada(usuario=user, evento=evento, id=id_entrada, aux_email=i)
             entrada.save()
             if evento.numero_entradas_actual > 0:
                 evento.numero_entradas_actual -= 1
@@ -1326,6 +1352,16 @@ def enviar_email_cancelar(evento):
         content += ", al que tenías previsto asistir, lo ha cancelado. Sentimos lo ocurrido."
 
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
+
+    invitado = User.objects.get(username='invitado')
+    entradas = Entrada.objects.filter(usuario=invitado)
+    for i in entradas:
+        title = "ATENCIÓN: Evento cancelado"
+        content = "Hola: \n"
+        content += "El organizador del evento: \"" + evento.titulo + "\""
+        content += ", al que tenías previsto asistir, lo ha cancelado. Sentimos lo ocurrido."
+
+        send_mail(title, content, 'freeketmail@gmail.com', [i.aux_email], fail_silently=False)
 
     path = os.getcwd() + evento.img.url
 

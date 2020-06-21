@@ -85,7 +85,7 @@
         <div class="row my-5">
 
             <div class="col-md-12">
-            <a href="#rowComprar"><button class="btn btn-outline-light btnOrg float-right">Adquirir entradas</button></a>
+            <a href="#rowComprar"><button class="btn btn-outline-light btnOrg float-right">¡Quiero entradas!</button></a>
                 </div>
 
         </div>
@@ -114,16 +114,18 @@
                 <input type="hidden" name="idEvento" value="{{ url_id }}">
                 <input id="nMaxInput" name="nMaxInput" type="hidden" value="{{ nmax }}">
                 {% if profile != 'org' %}
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="form-inline float-right">
-                            <label for="nComprarEntradas">¿Cuántas entradas quieres?</label>
-                            <select class="form-control ml-2" id="nComprarEntradas" name="nComprarEntradas">
-                            </select>
+                <div class="divComprar">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-inline float-right">
+                                <label for="nComprarEntradas"><strong>¿Cuántas entradas quieres?</strong></label>
+                                <select class="form-control ml-2" id="nComprarEntradas" name="nComprarEntradas">
+                                </select>
+                            </div>
                         </div>
                     </div>
+                    <button class="btn btn-primary float-right" id="btnComprar" type="submit">Adquirir entradas</button>
                 </div>
-                <button class="btn btn-primary float-right" id="btnComprar" type="submit">Adquirir entradas</button>
                 {% endif %}
             </form>
         {% endif %}

@@ -42,6 +42,7 @@ class Entrada(models.Model):
     id = models.UUIDField(null=False, primary_key=True, default=uuid.uuid4)
     fecha_adquisicion = models.DateField(default=date.today())
     validada = models.BooleanField(default=False)
+    aux_email = models.CharField(max_length=100, default='')
     objects = models.Manager()
 
 

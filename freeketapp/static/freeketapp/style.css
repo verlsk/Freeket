@@ -1,11 +1,13 @@
 html {
-    min-height: 100%;
-    position: relative;
-  }
-  body {
-      background-color: #faf5fc;
-  }
+  height: 100%;
+  margin: 0;
+}
 
+body {
+  height: 90%;
+  margin: 0;
+  background-color: #faf5fc;
+}
   .navbar .nav-item:hover .nav-link {
       color: #224367;
       background-color: #fcfcfc; /* add background-color to active links */
@@ -300,6 +302,20 @@ margin-top:100px;
     border-color: #360a4a;
     background-color: #FFFFFF;
 }
+.wrapper {
+  padding-bottom: 20px;
+  min-height: 100%;
+  margin: 0 auto -50px;
+}
+
+.push {
+  height: 50px;
+}
+.footer {
+  height: 100px;
+  background-color:purple;
+}
+
 @media only screen and (max-width: 600px) {
     .btnSide {
         padding-top:10px;
@@ -315,3 +331,4 @@ margin-top:100px;
       display: inline;
     }
 }
+

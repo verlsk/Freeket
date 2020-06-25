@@ -187,7 +187,6 @@ def crear_evento(request):
             context['b_nmax'] = 'border-danger'
             errores.append("El número máximo de entradas por usuario no es válido")
 
-
         if len(errores) == 0:
             context['publicado'] = True
             context['errores'] = None
@@ -210,7 +209,7 @@ def crear_evento(request):
                 path = os.getcwd() + '/media/' + e.img.name
                 os.remove(path)
                 e.delete()
-            elif e.img.size > 2*1024*1024:
+            elif e.img.size > 2 * 1024 * 1024:
                 errores.append("La imagen es demasiado grande")
                 context['publicado'] = None
                 path = os.getcwd() + '/media/' + e.img.name
@@ -222,7 +221,6 @@ def crear_evento(request):
                 context['errores'] = None
 
         context['errores'] = errores
-
 
     return render(request, "freeketapp/plantilla_eventos.html", context)
 
@@ -596,7 +594,8 @@ def registro(request):
             errores.append("La contraseña no puede estar vacía")
             context['b_p'] = "border-danger"
         if ck_datos is None:
-            errores.append("Es obligatorio que aceptes nuestra política de tratamiento de datos personales para registrate en el sistema")
+            errores.append(
+                "Es obligatorio que aceptes nuestra política de tratamiento de datos personales para registrate en el sistema")
             context['b_ck'] = "border-danger"
         if len(errores) > 0:
             context['errores'] = errores
@@ -610,7 +609,8 @@ def registro(request):
             user.first_name = name
             user.last_name = apellido
             if user_type == 'org':
-                org = Organizador(nickname=username, id=user.id, exclusive_org=True, direccion=org_direccion, ciudad=org_ciudad, cpostal=org_cpostal, telefono=org_telefono)
+                org = Organizador(nickname=username, id=user.id, exclusive_org=True, direccion=org_direccion,
+                                  ciudad=org_ciudad, cpostal=org_cpostal, telefono=org_telefono)
                 org.save()
             elif user_type == 'both':
                 org = Organizador(nickname=username, id=user.id, exclusive_org=False)
@@ -828,6 +828,36 @@ def mi_perfil(request):
         apellido = request.POST.get('apellido')
         email = request.POST.get('email')
         password = request.POST.get('password')
+        org_direccion = request.POST.get('orgDireccion')
+        org_ciudad = request.POST.get('orgCiudad')
+        org_cpostal = request.POST.get('orgCPostal')
+        org_telefono = request.POST.get('orgTelefono')
+        ck_org = request.POST.get('ckOrg')
+        if context['org']:
+
+            if org_direccion == '':
+                errores.append("Para organizadores, la dirección es necesaria")
+                context['b_dir'] = "border-danger"
+            elif org_direccion != '':
+                context['orgDireccion'] = org_direccion
+
+            if org_ciudad == '':
+                errores.append("Para organizadores, la ciudad es necesaria")
+                context['b_ciu'] = "border-danger"
+            elif org_ciudad != '':
+                context['orgCiudad'] = org_ciudad
+
+            if org_cpostal == '':
+                errores.append("Para organizadores, el código postal es necesario")
+                context['b_cp'] = "border-danger"
+            elif org_ciudad != '':
+                context['orgCPostal'] = org_ciudad
+
+            if org_telefono == '':
+                errores.append("Para organizadores, el teléfono es necesario")
+                context['b_tel'] = "border-danger"
+            elif org_telefono != '':
+                context['orgTelefono'] = org_telefono
 
         user = authenticate(request, username=request.user, password=password)
 
@@ -855,6 +885,13 @@ def mi_perfil(request):
                     context['texto'] = "Datos actualizados correctamente."
                     errores = None
                 request.user.save()
+                if context['org']:
+                    org_local = Organizador.objects.get(id=request.user.id)
+                    org_local.direccion = org_direccion
+                    org_local.ciudad = org_ciudad
+                    org_local.cpostal = org_cpostal
+                    org_local.telefono = org_telefono
+                    org_local.save()
         else:
             errores.append("Contraseña incorrecta")
     else:
@@ -863,6 +900,12 @@ def mi_perfil(request):
     context['nombre'] = request.user.first_name
     context['apellido'] = request.user.last_name
     context['email'] = request.user.email
+    if org.count() > 0:
+        org = org[0]
+        context['orgDireccion'] = org.direccion
+        context['orgCiudad'] = org.ciudad
+        context['orgCPostal'] = org.cpostal
+        context['orgTelefono'] = org.telefono
 
     return render(request, "freeketapp/mi_perfil.html", context)
 
@@ -1236,8 +1279,8 @@ def enviar_email_informativo(evento, text):
 
         send_mail(title, content, 'freeketmail@gmail.com', [i.aux_email], fail_silently=False)
 
-def enviar_email_invitaciones(evento, emails):
 
+def enviar_email_invitaciones(evento, emails):
     user = User.objects.get(username='invitado')
     for i in emails:
         if i != '' and i is not None:
@@ -1257,14 +1300,15 @@ def enviar_email_invitaciones(evento, emails):
             p.save()
             pdf = buffer.getvalue()
             buffer.close()
-            message = "Hola!\n\t El organizador del evento: \""+evento.titulo+"\" te ha enviado una invitación.\n"
+            message = "Hola!\n\t El organizador del evento: \"" + evento.titulo + "\" te ha enviado una invitación.\n"
             message += "\tLa encontrarás junto a este email.\n\tEsperamos que disfrutes del evento."
-            message += "\tPuedes encontrar información adicional acerca de este evento en: freeket.es/evento/"+evento.url_id
+            message += "\tPuedes encontrar información adicional acerca de este evento en: freeket.es/evento/" + evento.url_id
             email = EmailMessage(
                 'Has recibido una invitación para un evento Freeket!', message, 'freeketmail@gmail.com',
                 [i])
             email.attach('entrada.pdf', pdf, 'application/pdf')
             email.send()
+
 
 @login_required(login_url='/login')
 def gestionar_eventos_notificacion(request, id_evento):
@@ -1302,6 +1346,7 @@ def gestionar_eventos_notificacion(request, id_evento):
         raise Http404("No encontrado")
 
     return render(request, "freeketapp/gestionar_eventos_notificacion.html", context)
+
 
 @login_required(login_url='/login')
 def gestionar_eventos_invitaciones(request, id_evento):
@@ -1475,10 +1520,9 @@ def eventos(request):
         if request.method == 'POST':
             ordenado = request.POST.get('ordenado')
             if ordenado == '0':
-                eventos = eventos.filter(fecha__gte=strftime("%Y-%m-%d", localtime(time())))
-                eventos = Evento.objects.order_by('-fecha_creacion')
+                eventos = eventos.order_by('-fecha_creacion')
 
-                print (eventos)
+                print(eventos)
 
                 context['mode'] = 'fecha'
         n = 3
@@ -1585,7 +1629,7 @@ def registro_organizador(request):
         elif org_ciudad != '':
             context['orgCPostal'] = org_ciudad
 
-        if  org_telefono == '':
+        if org_telefono == '':
             errores.append("Para organizadores, el teléfono es necesario")
             context['b_tel'] = "border-danger"
         elif org_telefono != '':
@@ -1598,7 +1642,8 @@ def registro_organizador(request):
 
         if len(errores) == 0:
             org = Organizador(nickname=request.user.username, id=request.user.id,
-                              direccion=request.POST.get('orgDireccion'), exclusive_org=False, ciudad=org_ciudad, cpostal=org_cpostal, telefono=org_telefono)
+                              direccion=request.POST.get('orgDireccion'), exclusive_org=False, ciudad=org_ciudad,
+                              cpostal=org_cpostal, telefono=org_telefono)
             org.save()
             request.session['profile'] = 'org'
             context['errores'] = None
@@ -1681,6 +1726,7 @@ def reader(request, id_evento):
 
     return render(request, "freeketapp/reader.html", context)
 
+
 @login_required(login_url='/login')
 def reader_salida(request, id_evento):
     context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
@@ -1703,6 +1749,7 @@ def reader_salida(request, id_evento):
         raise Http404("El evento no existe!")
 
     return render(request, "freeketapp/reader-salida.html", context)
+
 
 def reader_ajax(request):
     if request.is_ajax():
@@ -1742,10 +1789,10 @@ def reader_ajax(request):
         except:
             res['resp'] = False
 
-
         return JsonResponse(res)
     else:
         raise Http404("El evento no existe")
+
 
 def reader_ajax_salida(request):
     if request.is_ajax():
@@ -1781,26 +1828,26 @@ def reader_ajax_salida(request):
         except:
             res['resp'] = False
 
-
         return JsonResponse(res)
     else:
         raise Http404("El evento no existe")
 
+
 def mail_lista_espera(l_espera):
     for i in l_espera:
         email_dir = i.usuario.email
-        message = "Hola, " + i.usuario.username +"\nTe escribimos para hacerte saber que hay nuevas entradas disponibles para el evento \""+i.evento.titulo+"\""
+        message = "Hola, " + i.usuario.username + "\nTe escribimos para hacerte saber que hay nuevas entradas disponibles para el evento \"" + i.evento.titulo + "\""
         message += ", para el cual te apuntaste a la lista de espera. No dudes en asistir pero... tienes que ser rápido, ya que el número de entradas es limitado"
         message += " y puede que no seas la única persona en recibir este email...\n"
-        message += "\nAcceso al evento: freeket.es/evento/"+i.evento.url_id
+        message += "\nAcceso al evento: freeket.es/evento/" + i.evento.url_id
         email = EmailMessage(
             'Nuevas entradas disponibles!', message, 'freeketmail@gmail.com', [email_dir])
         email.send()
 
-def mail_devolver(entrada, evento):
 
+def mail_devolver(entrada, evento):
     email_dir = entrada.usuario.email
-    message = "Hola, " + entrada.usuario.username +"\nTe escribimos para confirmar la devolución de tu entrada para el evento \""+entrada.evento.titulo+"\""
+    message = "Hola, " + entrada.usuario.username + "\nTe escribimos para confirmar la devolución de tu entrada para el evento \"" + entrada.evento.titulo + "\""
     message += "\nLamentamos que no puedas asistir al evento y agradecemos profundamente el tiempo que has dedicado a devolver tu entrada."
     email = EmailMessage(
         'Freeket: devolución de entrada', message, 'freeketmail@gmail.com', [email_dir])
@@ -1809,6 +1856,8 @@ def mail_devolver(entrada, evento):
     entrada.delete()
     evento.numero_entradas_actual += 1
     evento.save()
+
+
 @login_required(login_url='/login')
 def devolver(request, id_entrada):
     context = {'islogged': 'y', 'name': request.user.username, 'profile': request.session['profile']}
@@ -1836,7 +1885,7 @@ def devolver(request, id_entrada):
                 raise Http404()
             evento = entrada.evento
             # Mandamos email
-            t_dev = threading.Thread(target=mail_devolver, args=(entrada,evento), kwargs={})
+            t_dev = threading.Thread(target=mail_devolver, args=(entrada, evento), kwargs={})
             t_dev.setDaemon(True)
             t_dev.start()
 
@@ -1865,6 +1914,7 @@ def devolver(request, id_entrada):
         raise Http404()
 
     return render(request, "freeketapp/misentradas.html", context)
+
 
 @login_required(login_url='/login')
 def lista_espera(request):
@@ -1904,6 +1954,7 @@ def lista_espera(request):
             raise Http404()
     else:
         return redirect('eventos')
+
 
 @login_required(login_url='/login')
 def quitar_lista_espera(request):

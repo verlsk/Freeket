@@ -8,10 +8,11 @@
     <meta content="Freeket" name="description">
     <meta content="Alberto Angulo Lucerón" name="author">
 
-   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" rel="stylesheet">
     <title>{% block title %}Freeket{% endblock %}</title>
     {% load static %}
-    <link rel="shortcut icon" href="{% static 'freeketapp/logopest.png' %}">
+    <link href="{% static 'freeketapp/logopest.png' %}" rel="shortcut icon">
 
     {% load static %}
     <link href="{% static 'freeketapp/jquery.timepicker.css' %}" rel="stylesheet">
@@ -38,47 +39,46 @@
     </div>
 
     <a href={% url 'index' %} class="navbar-brand navbar-left">
-                <!-- Logo Image -->
-                {% load static %}
-                <img src="{% static 'freeketapp/logo5.png' %}" width="120" alt=""
-                    class="d-inline-block align-middle mr-2">
-                <!-- Logo Text -->
-            </a>
+    <!-- Logo Image -->
+    {% load static %}
+    <img alt="" class="d-inline-block align-middle mr-2" src="{% static 'freeketapp/logo5.png' %}"
+         width="120">
+    <!-- Logo Text -->
+    </a>
 
     <div class="collapse navbar-collapse " id="navbarColor02">
 
 
-
-    <form autocomplete="off" class="mx-2 d-inline w-50" action={% url 'resultados' %} method="post">
-    {% csrf_token %}
-    <input autocomplete="false" name="hidden" type="text" style="display:none;">
+        <form autocomplete="off" class="mx-2 d-inline w-50" action={% url 'resultados' %} method="post">
+        {% csrf_token %}
+        <input autocomplete="false" name="hidden" style="display:none;" type="text">
         <div class="input-group">
 
-            <input type="text" class="form-control" id="busqueda" placeholder="Busca tu evento" name="titulo">
+            <input class="form-control" id="busqueda" name="titulo" placeholder="Busca tu evento" type="text">
             <div class="input-group-append">
                 <button class="btn btn-secondary" type="submit">
                     <i class="fa fa-search"></i>
                 </button>
             </div>
-             <div role ="listbox" class="box-busqueda d-none" id="box-busqueda" aria-expanded="false" style="position: absolute; top: 100%; left: 0px; z-index: 100; display: hidden;">
+            <div aria-expanded="false" class="box-busqueda d-none" id="box-busqueda" role="listbox"
+                 style="position: absolute; top: 100%; left: 0px; z-index: 100; display: hidden;">
                 <div role="presentation" style="hidden">
                     <div id="replaceableContent">
 
                     </div>
                 </div>
-             </div>
+            </div>
         </div>
 
 
-    </form>
+        </form>
 
 
-
-    <ul class="navbar-nav d-lg-flex align-items-center nav-fill ml-auto mr-1 my-1">
+        <ul class="navbar-nav d-lg-flex align-items-center nav-fill ml-auto mr-1 my-1">
 
             <li class="nav-item">
                 <a href={% url 'eventos' %}>
-                    <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Explora</strong></button>
+                <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Explora</strong></button>
                 </a>
             </li>
             {% if islogged == 'y' %}
@@ -86,18 +86,21 @@
             {% if profile == 'org' %}
             <li class="nav-item">
                 <a href={% url 'crear_evento' %}>
-                    <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Crear evento</strong></button>
+                <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Crear evento</strong>
+                </button>
                 </a>
             </li>
             <li class="nav-item">
                 <a href={% url 'gestionar_eventos' %}>
-                <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Gestionar eventos</strong></button>
+                <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Gestionar eventos</strong>
+                </button>
                 </a>
             </li>
             {% else %}
             <li class="nav-item">
                 <a href={% url 'misentradas' %}>
-                <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Mis entradas</strong></button>
+                <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Mis entradas</strong>
+                </button>
                 </a>
             </li>
             {% endif %}
@@ -128,12 +131,14 @@
             {% else %}
             <li class="nav-item">
                 <a href="/login/">
-                    <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Inicia sesión</strong></button>
+                    <button class="btn btn-outline-light my-2 mx-2 my-sm-0" type="button"><strong>Inicia sesión</strong>
+                    </button>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="/registro/">
-                    <button class="btn btn-outline-light my-2 my-sm-0" type="button"><strong>Regístrate</strong></button>
+                    <button class="btn btn-outline-light my-2 my-sm-0" type="button"><strong>Regístrate</strong>
+                    </button>
                 </a>
             </li>
             {% endif %}
@@ -143,112 +148,137 @@
     </div>
 </nav>
 {% endblock %}
-
+<div class="wrapper">
 {% block contenido %}
 
 
-    <div class="container contInicio">
+<div class="container contInicio">
 
 
-
-        <div id="carouselInicio" class="carousel slide" data-ride="carousel">
-          <div class="carousel-inner">
+    <div class="carousel slide" data-ride="carousel" id="carouselInicio">
+        <div class="carousel-inner">
             <div class="carousel-item active">
 
                 <div class="row">
-                <div class="col-lg-3 descCar">
-                    <div class="container text-center contCar">
-                      <h3 class="titCar">Descubre eventos</h3>
-                      <p class="text-justify textCar">Consulta todos los eventos organizados a través de Freeket y no dudes en asistir a alguno de ellos. Recuerda: ¡es gratis!</p>
-                      <a href="/eventos/"> <button class="btn btn-outline-light btnOrg btn-lg btnCar" id="btnCrearEvento2">Descubre</button></a>
+                    <div class="col-lg-3 descCar">
+                        <div class="container text-center contCar">
+                            <h3 class="titCar">Descubre eventos</h3>
+                            <p class="text-justify textCar">Consulta todos los eventos organizados a través de Freeket y
+                                no dudes en asistir a alguno de ellos. Recuerda: ¡es gratis!</p>
+                            <a href="/eventos/">
+                                <button class="btn btn-outline-light btnOrg btn-lg btnCar" id="btnCrearEvento2">
+                                    Descubre
+                                </button>
+                            </a>
+                        </div>
                     </div>
-                </div>
-                <div class="col-lg-9">
-                   <a href="/eventos/"> <img class="d-block w-100" src="/media/m/carr_1.jpg" alt="First slide"></a>
-                </div>
+                    <div class="col-lg-9">
+                        <a href="/eventos/"> <img alt="First slide" class="d-block w-100" src="/media/m/carr_1.jpg"></a>
+                    </div>
 
-              </div>
-
+                </div>
 
 
             </div>
             <div class="carousel-item">
 
                 <div class="row">
-                <div class="col-lg-3 descCar">
-                    <div class="container text-center contCar">
-                      <h3 class="titCar">¡Organízalos tú mismo!</h3>
-                      <p class="text-justify textCar">Organizar eventos en Freeket es muy sencillo. Regístrate como organizador, si no lo estás, y comienza a organizar tus eventos personalizados.</p>
-                        <a href="/organizador/"><button class="btn btn-outline-light btnOrg btn-lg" id="btnCrearEvento">Organiza</button></a>
+                    <div class="col-lg-3 descCar">
+                        <div class="container text-center contCar">
+                            <h3 class="titCar">¡Organízalos tú mismo!</h3>
+                            <p class="text-justify textCar">Organizar eventos en Freeket es muy sencillo. Regístrate
+                                como organizador, si no lo estás, y comienza a organizar tus eventos personalizados.</p>
+                            <a href="/organizador/">
+                                <button class="btn btn-outline-light btnOrg btn-lg" id="btnCrearEvento">Organiza
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-9">
+                        <a href="/organizador/"><img alt="Second slide" class="d-block w-100" src="/media/m/carr_2.jpg"></a>
                     </div>
                 </div>
-                <div class="col-lg-9">
-                   <a href="/organizador/"><img class="d-block w-100" src="/media/m/carr_2.jpg" alt="Second slide"></a>
+            </div>
+            <a class="carousel-control-prev" data-slide="prev" href="#carouselInicio" role="button">
+                <span aria-hidden="true" class="carousel-control-prev-icon"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" data-slide="next" href="#carouselInicio" role="button">
+                <span aria-hidden="true" class="carousel-control-next-icon"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+
+    </div>
+</div>
+    <div class="container contEventosIni">
+        <h2 class="titCar">Estos eventos pueden interesarte</h2>
+        <div class="row">
+
+            {% for evento in eventos %}
+            <div class="card col-md-4 py-3 " style="width: 100%">
+                <img alt="Card image cap" class="card-img-top" src="{{ evento.img.url }}">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ evento.titulo }}</h5>
+                    <p class="card-text">{{ evento.fecha }}, {{ evento.hora }}</p>
+                    <a class="btn btn-outline-light btnOrg mt-auto stretched-link" href="/evento/{{ evento.url_id }}">Página
+                        del evento</a>
                 </div>
             </div>
-          </div>
-          <a class="carousel-control-prev" href="#carouselInicio" role="button" data-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="sr-only">Previous</span>
-          </a>
-          <a class="carousel-control-next" href="#carouselInicio" role="button" data-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="sr-only">Next</span>
-          </a>
-        </div>
 
-    </div>
-
-        <div class = "container contEventosIni">
-            <h2 class="titCar">Estos eventos pueden interesarte</h2>
-     <div class="row">
-
-        {% for evento in eventos %}
-        <div class="card col-md-4 py-3 " style="width: 100%">
-            <img class="card-img-top" src="{{ evento.img.url }}" alt="Card image cap">
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title">{{ evento.titulo }}</h5>
-              <p class="card-text">{{ evento.fecha }}, {{ evento.hora }}</p>
-              <a href="/evento/{{ evento.url_id }}" class="btn btn-outline-light btnOrg mt-auto stretched-link" >Página del evento</a>
-            </div>
-          </div>
-
-        {% endfor %}
+            {% endfor %}
 
         </div>
     </div>
-{% endblock %}
+    <div class="push"></div>
+    </div>
+    <footer class="bg-dark text-white footer">
+        <div class="footer-copyright text-center py-2">© 2020
+            <br>
+            <strong>Creador: Alberto Angulo Lucerón</strong>
+            <br>
+            <small>Contacto: +34684004016 / verlsk2@gmail.com</small>
+          </div>
+    </footer>
+    {% endblock %}
 
 
-{% load static %}
-<script src="{% static 'freeketapp/html5-qrcode.min.js' %}"></script>
 
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    {% load static %}
+    <script src="{% static 'freeketapp/html5-qrcode.min.js' %}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script crossorigin="anonymous"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 
-<script crossorigin="anonymous"
-        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-        src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-<script crossorigin="anonymous"
-        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-        src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<script crossorigin="anonymous"
-        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-        src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.1/Chart.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script crossorigin="anonymous"
+            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+            src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script crossorigin="anonymous"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script crossorigin="anonymous"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script crossorigin="anonymous"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+    <script crossorigin="anonymous"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
 
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<script src="https://use.fontawesome.com/27d78594d9.js"></script>
-{% load static %}
-<script src="{% static 'freeketapp/jquery.timepicker.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.1/Chart.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 
-{% load static %}
-<script src="{% static 'freeketapp/scripts.js' %}"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://use.fontawesome.com/27d78594d9.js"></script>
+    {% load static %}
+    <script src="{% static 'freeketapp/jquery.timepicker.js' %}"></script>
+
+    {% load static %}
+    <script src="{% static 'freeketapp/scripts.js' %}"></script>
 </body>
 </html>

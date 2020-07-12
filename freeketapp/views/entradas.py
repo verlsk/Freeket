@@ -158,4 +158,8 @@ def misentradas(request):
     context['ids'] = ids
     context['elementos'] = zip(ids, evs, fechas)
 
+    if entradas.count() > 0:
+        context['hayentradas'] = True
+    else:
+        context['hayentradas'] = False
     return render(request, "freeketapp/misentradas.html", context)

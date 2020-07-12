@@ -11,6 +11,7 @@
 {% endif %}
 <div class="container contGestEvs">
 
+    {% if hayentradas %}
     {% for i, e, f in elementos %}
     <div class="row ">
         <div class="col-md-12 align-items-center">
@@ -60,6 +61,15 @@
             </div>
         </div>
     {% endfor %}
+
+    {% else %}
+
+    <h1 class="my-3">No has adquirido ninguna entrada</h1>
+
+    <div class="text-center divComprar">
+        <a href="{% url 'eventos' %}"><button class="btn btn-outline-light btnOrg btn-lg my-4">Descubre eventos</button></a>
+    </div>
+    {% endif %}
 
 
 </div>

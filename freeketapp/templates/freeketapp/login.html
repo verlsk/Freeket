@@ -1,5 +1,5 @@
 {% extends "freeketapp/base.html" %}
-{% block title %}Crea tu evento!{% endblock %}
+{% block title %}Inicia sesión{% endblock %}
 
 {% block contenido %}
 
@@ -14,18 +14,17 @@
 <div class="container contCrear">
 
     <form action={% url 'login' %} method="post">
-{% csrf_token %}
-    <input type="hidden" id="userType" name="user_type" value="assist">
+        {% csrf_token %}
+        <input type="hidden" id="userType" name="user_type" value="assist">
+        <input type="hidden" name="next" value="{{ request.GET.next }}">
 
-        <div class="form-group">
-        <label>Perfil de inicio: </label>
-        <button class="btn btn-outline-light btnOrg btnSideActive" id="btnAsistente" type="button">Asistente</button>
-        <button class="btn btn-outline-light btnOrg" id="btnOrganizador"type="button">Organizador</button>
-            </div>
+        <div class="form-inline">
+            <label>¿Aún no estás registrado?</label>
+            <a href={% url 'registro' %}> <button class="btn btn-sm btnOrg mx-3">Crear cuenta</button></a>
+        </div>
 
-    <input type="hidden" name="next" value="{{ request.GET.next }}">
-        <div class="form-group">
-            <label for="username"><strong>Nombre de usuario: <strong></label>
+        <div class="form-group my-3">
+            <label for="username"><strong>Nombre de usuario: </strong></label>
             <input class="form-control" id="username" name="username"
                    type="text">
         </div>
@@ -34,12 +33,20 @@
             <input class="form-control" id="password" name="password" type="password">
         </div>
 
-        <small class="form-text text-muted forgot"> <a href={% url 'forgot_password_form' %}>He olvidado la contraseña</a>.</small>
-        <small class="form-text text-muted forgot my-2"> <a href={% url 'registro' %}>Crear cuenta</a></small>
-        <button class="btn btn-outline-light btnOrg float-right" id="btnCrearEvento" type="submit">Iniciar sesión</button>
-        <div class="form-group">
 
+        <div class="form-group">
+            <label><strong>Perfil de inicio: </strong></label>
+            <button class="btn btn-outline-light btnOrg btnSideActive" id="btnAsistente" type="button">Asistente</button>
+            <button class="btn btn-outline-light btnOrg" id="btnOrganizador"type="button">Organizador</button>
         </div>
+
+
+        <div class="form-group my-4">
+            <small class="form-text text-muted forgot"> <a href={% url 'forgot_password_form' %}>He olvidado la contraseña</a>.</small>
+            <button class="btn btn-outline-light btnOrg float-right" id="btnCrearEvento" type="submit">Iniciar sesión</button>
+        </div>
+
+
     </form>
 </div>
 

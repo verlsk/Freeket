@@ -331,27 +331,14 @@ margin-top:100px;
       height: 300px;
       display: inline;
     }
+
 }
 
 @media only screen and (min-width: 900px) {
-    .btnSide {
-        padding-top:10px;
-        padding-bottom:10px;
-        border-bottom-style: solid;
-        border-bottom-width: 1px;
-        border-bottom-color: #360a4a;
-        font-size:15px;
-    }
-    canvas {
-      width: 100%;
-      height: 300px;
-      display: inline;
-    }
     .btnCar{
-   position:absolute;
-   width:90%;
-   bottom:30px;
-}
-
+       position:absolute;
+       width:90%;
+       bottom:30px;
+    }
 
 }

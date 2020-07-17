@@ -64,7 +64,7 @@ def enviar_email_cambios(evento, text):
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
 
     invitado = User.objects.get(username='invitado')
-    entradas = Entrada.objects.filter(usuario=invitado)
+    entradas = Entrada.objects.filter(usuario=invitado, evento=evento)
     for i in entradas:
         title = "Cambios en tu evento"
         content = "Hola: \n"
@@ -92,7 +92,7 @@ def enviar_email_informativo(evento, text):
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
 
     invitado = User.objects.get(username='invitado')
-    entradas = Entrada.objects.filter(usuario=invitado)
+    entradas = Entrada.objects.filter(usuario=invitado, evento=evento)
     for i in entradas:
         title = "Notificación acerca de tu evento"
         content = "Hola: \n"
@@ -147,7 +147,7 @@ def enviar_email_cancelar(evento):
         send_mail(title, content, 'freeketmail@gmail.com', [user.email], fail_silently=False)
 
     invitado = User.objects.get(username='invitado')
-    entradas = Entrada.objects.filter(usuario=invitado)
+    entradas = Entrada.objects.filter(usuario=invitado, evento=evento)
     for i in entradas:
         title = "ATENCIÓN: Evento cancelado"
         content = "Hola: \n"

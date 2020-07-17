@@ -61,21 +61,31 @@ def get_entrada(entrada, p):
 
     titulo_1 = ""
     titulo_2 = ""
+    titulo_3 = ""
+    font_size = (700//len(entrada.evento.titulo))*2
+
+
+    if font_size > 22:
+        font_size = 32
+
+    index_cut = 570 // font_size
     cut = 0
     if len(entrada.evento.titulo) > 32:
-        for i in entrada.evento.titulo[26:]:
+        for i in entrada.evento.titulo[index_cut:]:
             if i == ' ':
                 break
             cut += 1
 
-        titulo_1 = entrada.evento.titulo[:26 + cut]
-        titulo_2 = entrada.evento.titulo[26 + cut + 1:]
+        titulo_1 = entrada.evento.titulo[:index_cut + cut]
+        titulo_2 = entrada.evento.titulo[index_cut + cut + 1:]
     else:
         titulo_1 = entrada.evento.titulo
     text = p.beginText(x_margin, 770)
-    text.setFont("Times-Roman", 22)
+    text.setFont("Times-Roman", font_size)
     text.textLine(titulo_1)
     text.textLine(titulo_2)
+    text.setFont("Times-Roman", 22)
+    text.textLine("")
     text.setFont("Times-Roman", 14)
     eng_date_format = entrada.evento.fecha
     esp_date_format = eng_date_format.strftime("%A %d de %B de %Y")
